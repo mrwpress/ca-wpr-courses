@@ -1,0 +1,61 @@
+#wpr-dialog-wrap {
+  position: absolute;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999999; }
+  #wpr-dialog-wrap .dialog {
+    top: 17.6vh;
+    position: relative;
+    width: 90%;
+    max-width: 320px;
+    margin: 100px auto 0;
+    text-align: center;
+    background-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    overflow: hidden; }
+    #wpr-dialog-wrap .dialog header {
+      padding: 10px 12px;
+      background-color: #f6f7f9;
+      border-bottom: 1px solid #e5e5e5; }
+      #wpr-dialog-wrap .dialog header h3 {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0;
+        color: #555;
+        display: inline-block; }
+      #wpr-dialog-wrap .dialog header .fa-close {
+        float: right;
+        color: #c4c5c7;
+        cursor: pointer;
+        transition: all .5s ease;
+        padding: 0 2px;
+        border-radius: 1px; }
+        #wpr-dialog-wrap .dialog header .fa-close:hover {
+          color: #b9b9b9; }
+        #wpr-dialog-wrap .dialog header .fa-close:active {
+          box-shadow: 0 0 5px #673AB7;
+          color: #a2a2a2; }
+    #wpr-dialog-wrap .dialog .dialog-msg {
+      padding: 10px 12px; }
+      #wpr-dialog-wrap .dialog .dialog-msg p {
+        margin: 0;
+        font-size: 15px;
+        color: #333; }
+    #wpr-dialog-wrap .dialog footer {
+      border-top: 1px solid #e5e5e5;
+      padding: 8px 10px; }
+      #wpr-dialog-wrap .dialog footer .controls {
+        direction: rtl; }
+        #wpr-dialog-wrap .dialog footer .controls .button {
+          padding: 5px 15px;
+          border-radius: 3px; }
+  #wpr-dialog-wrap .button {
+    cursor: pointer;
+    background-color: #f8f8f8;
+    border: 1px solid rgba(204, 204, 204, 0.5);
+    color: #5D5D5D; }

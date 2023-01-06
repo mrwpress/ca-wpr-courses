@@ -1031,7 +1031,7 @@ function wpr_show_security_fields( $user ) {
 				</td>
 			</tr>
 			<tr>
-				<th><label for="_wpr_ssn">Last 4 digits of Social Security Number</label></th>
+				<th><label for="_wpr_ssn">Server ID #</label></th>
 				<td>
 				<input type="text" name="_wpr_ssn" id="_wpr_ssn" value="<?php echo get_user_meta( $user->ID, '_wpr_ssn', true ); ?>" class="regular-text" /><br />
 				</td>

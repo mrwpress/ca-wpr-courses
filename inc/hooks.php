@@ -615,14 +615,11 @@ function get_third_party_certificate_link() {
 }
 
 /**
- * Get site link to certificate
+ * @param $user_id
  *
- * @param [type] $user_id
- *
- * @return void
+ * @return string
  */
 function get_site_certificate_link( $user_id ) {
-	$course_id      = get_option( 'wpr_courses_settings_course_id' );
 	$quiz_id        = get_option( 'wpr_courses_settings_quiz_id' );
 	$certificate_id = get_option( 'wpr_courses_settings_certificate_id' );
 
@@ -639,14 +636,9 @@ function get_site_certificate_link( $user_id ) {
 }
 
 /**
- * Remove link to certificate from users
+ * @param $certificate_link
  *
- * @param [type] $certificateLink
- * @param [type] $certificate_post
- * @param [type] $post
- * @param [type] $cert_user_id
- *
- * @return void
+ * @return mixed|string
  */
 function wpr_remove_certificate_link_no_pass_third_party( $certificate_link ) {
 	if ( ! isset( $_GET['trainingId'] ) ) {

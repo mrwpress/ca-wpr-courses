@@ -8,6 +8,13 @@
  * @license     GPL-2.0+
  */
 
+
+/**
+ * NOTES
+ *
+ * @help: https://developers.learndash.com/hook/learndash_quiz_completed/
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	header( 'Status: 403 Forbidden' );
 	header( 'HTTP/1.1 403 Forbidden' );
@@ -997,20 +1004,17 @@ function wpr_send_trainee_data_fliped( $quiz_id, $user_id ) {
 add_action( 'learndash_quiz_submitted', 'wpr_send_trainee_data_fliped', 1000, 2 );
 
 
-
-
 /**
- * User security fields data
+ * @param $user
  *
- * @param [type] $user
- * @return void
+ * @return false|void
  */
 function wpr_show_security_fields( $user ) {
 	wp_enqueue_script( 'jquery-ui-datepicker' );
 	wp_register_style( 'jquery-ui', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css' );
 	wp_enqueue_style( 'jquery-ui' );
 
-	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+	if ( ! current_user_can( 'edit_user', $user->ID ) ) {
 		return false;
 	}
 
@@ -1070,10 +1074,9 @@ add_action( 'show_user_profile', 'wpr_show_security_fields', 10 );
 add_action( 'edit_user_profile', 'wpr_show_security_fields', 10 );
 
 /**
- * Save security questions data
+ * @param $user_id
  *
- * @param [type] $user_id
- * @return void
+ * @return false|void
  */
 function save_security_fields( $user_id ) {
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
@@ -1104,7 +1107,7 @@ function wpr_change_continue( $return_link, $link ) {
 	$return_val        = $return_link;
 	$setting_quiz_id   = get_option( 'wpr_courses_settings_quiz_id' );
 	$setting_course_id = get_option( 'wpr_courses_settings_course_id' );
-	$params            = array();
+	$params            = [];
 	$tmp               = wp_parse_url( $link );
 	parse_str( $tmp['query'], $params );
 

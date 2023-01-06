@@ -24,11 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 function wpr_change_print_certificate_label( $label ) {
 	return __( 'Print Responsible Beverage Course Certificate', 'wpr' );
 }
+
 add_filter( 'ld_certificate_link_label', 'wpr_change_print_certificate_label' );
 
 function wpr_learndash_quizinfo( $attr ) {
 	global $learndash_shortcode_used;
-	$learndash_shortcode_used = true;
+	$learndash_shortcode_used = TRUE;
 
 	$shortcode_atts = shortcode_atts(
 		array(
@@ -48,14 +49,14 @@ function wpr_learndash_quizinfo( $attr ) {
 	$show      = ( empty( $show ) && isset( $_REQUEST['show'] ) ) ? $_REQUEST['show'] : $show;
 	$quiz      = ( empty( $quiz ) && isset( $_REQUEST['quiz'] ) ) ? $_REQUEST['quiz'] : $quiz;
 	$user_id   = ( empty( $user_id ) && isset( $_REQUEST['user_id'] ) ) ? $_REQUEST['user_id'] : $user_id;
-	$course_id = ( empty( $course_id ) && isset( $_REQUEST['course_id'] ) ) ? $_REQUEST['course_id'] : null;
+	$course_id = ( empty( $course_id ) && isset( $_REQUEST['course_id'] ) ) ? $_REQUEST['course_id'] : NULL;
 
 	if ( empty( $user_id ) ) {
 		$user_id = get_current_user_id();
 
 		/**
 		 * Added logic to allow admin and group_leader to view certificate from other users.
-			 *
+		 *
 		 * @since 2.3
 		 */
 		$post_type = '';
@@ -74,7 +75,7 @@ function wpr_learndash_quizinfo( $attr ) {
 		return '';
 	}
 
-	$quizinfo = get_user_meta( $user_id, '_sfwd-quizzes', true );
+	$quizinfo = get_user_meta( $user_id, '_sfwd-quizzes', TRUE );
 
 	$selected_quizinfo  = '';
 	$selected_quizinfo2 = '';
@@ -147,7 +148,7 @@ function wpr_learndash_quizinfo( $attr ) {
 	}
 }
 
-if ( false !== strpos( $_SERVER['REQUEST_URI'], 'certificates/ramp-certificate' ) ) {
+if ( FALSE !== strpos( $_SERVER['REQUEST_URI'], 'certificates/ramp-certificate' ) ) {
 	remove_shortcode( 'quizinfo' );
 	add_shortcode( 'quizinfo', 'wpr_learndash_quizinfo' );
 }
@@ -158,6 +159,7 @@ if ( false !== strpos( $_SERVER['REQUEST_URI'], 'certificates/ramp-certificate' 
 function wpr_show_admin_bar() {
 	return current_user_can( 'manage_options' );
 }
+
 add_filter( 'show_admin_bar', 'wpr_show_admin_bar', 99 );
 
 /**
@@ -166,7 +168,7 @@ add_filter( 'show_admin_bar', 'wpr_show_admin_bar', 99 );
 function wpr_wp_enqueue_scripts() {
 	if ( is_plugin_active( 'sfwd-lms/sfwd_lms.php' ) ) {
 
-		wp_enqueue_script( 'wpr_course', WPR_COURSES_URI . 'assets/js/script.js', array( 'jquery' ), null, true );
+		wp_enqueue_script( 'wpr_course', WPR_COURSES_URI . 'assets/js/script.js', array( 'jquery' ), NULL, TRUE );
 		$wpr_course_js = array(
 			'quiz_id'         => ( is_singular( 'sfwd-quiz' ) ? get_the_ID() : 0 ),
 			'setting_quiz_id' => get_option( 'wpr_courses_settings_quiz_id' ),
@@ -179,7 +181,7 @@ function wpr_wp_enqueue_scripts() {
 		if ( is_singular( 'sfwd-lessons' ) && wpr_should_load_inquisitor() ) {
 			// User is currently going through a course, enqueue the inquisitor script and stylesheet.
 			wp_enqueue_style( 'wpr-inquisitor', WPR_COURSES_URI . 'assets/css/inquisitor.css' );
-			wp_enqueue_script( 'wpr-inquisitor', WPR_COURSES_URI . 'assets/js/inquisitor.js', array( 'jquery' ), null, true );
+			wp_enqueue_script( 'wpr-inquisitor', WPR_COURSES_URI . 'assets/js/inquisitor.js', array( 'jquery' ), NULL, TRUE );
 			// Localize inquisitor script.
 			wp_localize_script(
 				'wpr-inquisitor',
@@ -200,11 +202,11 @@ function wpr_wp_enqueue_scripts() {
 			);
 		} elseif ( is_singular( 'sfwd-quiz' ) ) {
 			// Quiz page, load forced timer script if any questions have timers set.
-			$questions = get_post_meta( get_the_ID(), '_wpr_question_timers', true );
+			$questions = get_post_meta( get_the_ID(), '_wpr_question_timers', TRUE );
 
 			if ( ! empty( $questions ) && is_array( $questions ) ) {
 				wp_enqueue_style( 'wpr-quiz-timer', WPR_COURSES_URI . 'assets/css/quiz-timer.css' );
-				wp_enqueue_script( 'wpr-quiz-timer', WPR_COURSES_URI . 'assets/js/quiz-timer.js', array( 'jquery' ), null, true );
+				wp_enqueue_script( 'wpr-quiz-timer', WPR_COURSES_URI . 'assets/js/quiz-timer.js', array( 'jquery' ), NULL, TRUE );
 				// Localize forced timer script.
 				$quiz_timer_questions = array_map(
 					function ( $timers ) {
@@ -217,7 +219,7 @@ function wpr_wp_enqueue_scripts() {
 								$s = 0;
 
 								foreach ( $time_sections as $k => $v ) {
-										  $value = trim( $v );
+									$value = trim( $v );
 
 									if ( strpos( $value, 'h' ) ) {
 										$h = intVal( $value );
@@ -231,7 +233,7 @@ function wpr_wp_enqueue_scripts() {
 								$time = $h * 60 * 60 + $m * 60 + $s;
 
 								if ( 0 === $time ) {
-									   $time = (int) $timeval;
+									$time = (int) $timeval;
 								}
 
 								return $time;
@@ -260,6 +262,7 @@ function wpr_wp_enqueue_scripts() {
 		}
 	}
 }
+
 add_action( 'wp_enqueue_scripts', 'wpr_wp_enqueue_scripts' );
 
 /**
@@ -271,28 +274,28 @@ function wpr_should_load_inquisitor() {
 	$course_id = learndash_get_course_id( get_the_ID() );
 	if ( empty( $course_id ) ) {
 		// Course ID not found.
-		return false;
+		return FALSE;
 	}
 
 	$in_progress = empty( learndash_user_get_course_completed_date( $course_id ) );
 	if ( ! $in_progress ) {
 		// Course is not in progress.
-		return false;
+		return FALSE;
 	}
 
 	$inquisitor          = wpr_get_user_inquisitor();
 	$remaining_questions = count( $inquisitor['questions'] );
 	if ( 0 === $remaining_questions ) {
 		// No more questions to ask.
-		return false;
+		return FALSE;
 	}
 
 	$course_obj     = new LDLMS_Course_Steps( $course_id );
 	$all_lessons    = $course_obj->get_steps_count();
 	$current_lesson = wpr_get_current_lesson();
-	if ( null === $current_lesson ) {
+	if ( NULL === $current_lesson ) {
 		// Could not get number of complete lessons.
-		return false;
+		return FALSE;
 	}
 
 	$remaining_lessons = $all_lessons - $current_lesson;
@@ -316,9 +319,9 @@ function wpr_should_load_inquisitor() {
 function wpr_get_current_lesson() {
 	global $post;
 
-	$posts = learndash_get_lesson_list( null, array( 'num' => 0 ) );
+	$posts = learndash_get_lesson_list( NULL, array( 'num' => 0 ) );
 
-	$current_index = null;
+	$current_index = NULL;
 
 	foreach ( $posts as $index => $p ) {
 		if ( ! $p instanceof WP_Post ) {
@@ -341,12 +344,12 @@ function wpr_get_current_lesson() {
  *
  * @return array
  */
-function wpr_get_user_inquisitor( $user_id = null ) {
+function wpr_get_user_inquisitor( $user_id = NULL ) {
 	if ( empty( $user_id ) ) {
 		$user_id = get_current_user_id();
 	}
 
-	$inquisitor = get_user_meta( get_current_user_id(), '_wpr_inquisitor', true );
+	$inquisitor = get_user_meta( get_current_user_id(), '_wpr_inquisitor', TRUE );
 
 	if ( empty( $inquisitor ) || ! is_array( $inquisitor ) ) {
 		$inquisitor = wpr_set_user_inquisitor();
@@ -363,18 +366,18 @@ function wpr_get_user_inquisitor( $user_id = null ) {
  *
  * @return array
  */
-function wpr_set_user_inquisitor( $user_id = null, $inquisitor = null ) {
+function wpr_set_user_inquisitor( $user_id = NULL, $inquisitor = NULL ) {
 	if ( empty( $user_id ) ) {
 		$user_id = get_current_user_id();
 	}
 
 	if ( empty( $inquisitor ) ) {
-		$dob_date   = date_create( trim( get_user_meta( $user_id, '_wpr_dob', true ) ) );
+		$dob_date   = date_create( trim( get_user_meta( $user_id, '_wpr_dob', TRUE ) ) );
 		$inquisitor = array(
 			'asked'     => array(),
 			'questions' => array(
-				esc_html__( 'What is your mother\'s first name?', 'wpr' )                          => trim( get_user_meta( $user_id, '_wpr_mfn', true ) ),
-				esc_html__( 'Please re-enter the last 4 digits of your social security #', 'wpr' ) => trim( get_user_meta( $user_id, '_wpr_ssn', true ) ),
+				esc_html__( 'What is your mother\'s first name?', 'wpr' )                          => trim( get_user_meta( $user_id, '_wpr_mfn', TRUE ) ),
+				esc_html__( 'Please re-enter the last 4 digits of your social security #', 'wpr' ) => trim( get_user_meta( $user_id, '_wpr_ssn', TRUE ) ),
 				esc_html__( 'What is your birth date? (MM/DD/YYYY)', 'wpr' )                       => date_format( $dob_date, 'm/d/Y' ),
 			),
 		);
@@ -406,6 +409,7 @@ function wpr_ajax_summon_inquisitor() {
 		wp_send_json_error();
 	}
 }
+
 add_action( 'wp_ajax_wpr_summon_inquisitor', 'wpr_ajax_summon_inquisitor' );
 
 /**
@@ -424,13 +428,13 @@ function wpr_ajax_check_inquisitor_answer() {
 
 	if ( is_array( $inquisitor['questions'] ) ) {
 		$question = array_search( $answer, $inquisitor['questions'] );
-		$passed   = ( false !== $question );
+		$passed   = ( FALSE !== $question );
 
 		if ( $passed ) {
 			// Mark question as asked and answered.
 			$inquisitor['asked'][ $question ] = $inquisitor['questions'][ $question ];
 			unset( $inquisitor['questions'][ $question ] );
-			wpr_set_user_inquisitor( null, $inquisitor );
+			wpr_set_user_inquisitor( NULL, $inquisitor );
 		}
 
 		wp_send_json_success(
@@ -443,6 +447,7 @@ function wpr_ajax_check_inquisitor_answer() {
 		wp_send_json_error();
 	}
 }
+
 add_action( 'wp_ajax_wpr_check_inquisitor_answer', 'wpr_ajax_check_inquisitor_answer' );
 
 /**
@@ -466,6 +471,7 @@ function wpr_template_redirect( $url ) {
 	wp_safe_redirect( $url );
 	die;
 }
+
 add_action( 'template_redirect', 'wpr_template_redirect' );
 
 /**
@@ -478,7 +484,7 @@ function wpr_woocommerce_thankyou( $order_id ) {
 
 	if ( 'failed' !== $order->status ) {
 		$product_id = intval( get_option( 'wpr_courses_settings_product_id' ) );
-		$course_arr = get_post_meta( $product_id, '_related_course', true );
+		$course_arr = get_post_meta( $product_id, '_related_course', TRUE );
 
 		if ( is_array( $course_arr ) ) {
 			$course_url = get_permalink( intval( $course_arr[0] ) );
@@ -487,6 +493,7 @@ function wpr_woocommerce_thankyou( $order_id ) {
 		}
 	}
 }
+
 add_action( 'woocommerce_thankyou', 'wpr_woocommerce_thankyou' );
 
 /**
@@ -519,6 +526,7 @@ function wpr_gform_confirmation( $confirmation, $form, $entry, $ajax ) {
 
 	return $confirmation;
 }
+
 add_action( 'gform_confirmation', 'wpr_gform_confirmation', 10, 4 );
 
 /**
@@ -529,6 +537,7 @@ function wpr_gform_user_registered( $user_id, $config, $entry, $password ) {
 
 	wpr_set_user_inquisitor( $user_id );
 }
+
 add_action( 'gform_user_registered', 'wpr_gform_user_registered', 10, 4 );
 
 /**
@@ -544,7 +553,7 @@ function wpr_gform_review_page( $review_page, $form, $entry ) {
 	$register_form = intval( get_option( 'wpr_courses_settings_gf_reg_id', 1 ) );
 	if ( $register_form === $form['id'] ) {
 		// Enable the review page
-		$review_page['is_enabled'] = true;
+		$review_page['is_enabled'] = TRUE;
 
 		// Populate the review page
 		$review_page['content'] = GFCommon::replace_variables( '{all_fields}', $form, $entry );
@@ -555,6 +564,7 @@ function wpr_gform_review_page( $review_page, $form, $entry ) {
 
 	return $review_page;
 }
+
 add_filter( 'gform_review_page', 'wpr_gform_review_page', 10, 3 );
 
 /**
@@ -565,6 +575,7 @@ add_filter( 'gform_review_page', 'wpr_gform_review_page', 10, 3 );
  * @param [type] $args
  * @param [type] $echo
  * @param [type] $return_file_path
+ *
  * @return void
  */
 function wpr_ld_override_template( $filepath, $name, $args, $echo, $return_file_path ) {
@@ -580,6 +591,7 @@ function wpr_ld_override_template( $filepath, $name, $args, $echo, $return_file_
 		return $filepath;
 	}
 }
+
 add_filter( 'learndash_template', 'wpr_ld_override_template', 10, 5 );
 
 function get_third_party_certificate_link() {
@@ -589,7 +601,7 @@ function get_third_party_certificate_link() {
 		$key          = md5( $current_user->user_email . '-' . $current_user->ID );
 
 		$redirect_link = get_option( 'wpr_courses_settings_redirect_link' );
-		if ( false === strpos( $redirect_link, '?' ) ) {
+		if ( FALSE === strpos( $redirect_link, '?' ) ) {
 			$redirect_link .= '?';
 		} else {
 			$redirect_link .= '&';
@@ -604,6 +616,7 @@ function get_third_party_certificate_link() {
  * Get site link to certificate
  *
  * @param [type] $user_id
+ *
  * @return void
  */
 function get_site_certificate_link( $user_id ) {
@@ -630,6 +643,7 @@ function get_site_certificate_link( $user_id ) {
  * @param [type] $certificate_post
  * @param [type] $post
  * @param [type] $cert_user_id
+ *
  * @return void
  */
 function wpr_remove_certificate_link_no_pass_third_party( $certificate_link ) {
@@ -637,7 +651,7 @@ function wpr_remove_certificate_link_no_pass_third_party( $certificate_link ) {
 		$cert_user             = wp_get_current_user();
 		$witobaccocheck_status = get_user_meta( $cert_user->ID, '_wpr_witobaccocheck_status', 'false' );
 		$course_id             = get_option( 'wpr_courses_settings_course_id' );
-		$completed_on          = get_user_meta( $cert_user->ID, 'course_completed_' . $course_id, true );
+		$completed_on          = get_user_meta( $cert_user->ID, 'course_completed_' . $course_id, TRUE );
 
 		if ( in_array( 'administrator', $cert_user->roles ) || in_array( 'customer', $cert_user->roles ) ) {
 			return $certificate_link;
@@ -650,12 +664,14 @@ function wpr_remove_certificate_link_no_pass_third_party( $certificate_link ) {
 		return $certificate_link;
 	}
 }
+
 add_filter( 'learndash_certificate_details_link', 'wpr_remove_certificate_link_no_pass_third_party', 99, 1 );
 
 /**
  * Add custom user details
  *
  * @param [type] $user
+ *
  * @return void
  */
 function wpr_witobaccocheck_status( $user ) {
@@ -665,38 +681,41 @@ function wpr_witobaccocheck_status( $user ) {
 		$witobaccocheck_status = get_user_meta( $user->ID, '_wpr_witobaccocheck_status', 'false' );
 		// var_dump($witobaccocheck_status); die();
 		?>
-		<!--
+      <!--
 		<h3><?php esc_html_e( 'Witobaccocheck Test Done', 'wpr' ); ?></h3>
 		<div>
 			<select name="wpr_witobaccocheck_status">
 				<option value="true"
 				<?php
-				if ( 'true' === $witobaccocheck_status ) {
-					echo ' selected="selected"';}
-				?>
+	  if ( 'true' === $witobaccocheck_status ) {
+		  echo ' selected="selected"';
+	  }
+	  ?>
 				>Done</option>
 				<option value="false"
 				<?php
-				if ( '' === $witobaccocheck_status || 'false' === $witobaccocheck_status ) {
-					echo ' selected="selected"';}
-				?>
+	  if ( '' === $witobaccocheck_status || 'false' === $witobaccocheck_status ) {
+		  echo ' selected="selected"';
+	  }
+	  ?>
 				>NOT Done</option>
 			</select>
 		</div>
 		<br />
 		-->
-		<h3><?php esc_html_e( 'Test Done DATE', 'wpr' ); ?></h3>
-		<div>
-			<input name="_wpr_witobaccocheck_date" value="
+      <h3><?php esc_html_e( 'Test Done DATE', 'wpr' ); ?></h3>
+      <div>
+        <input name="_wpr_witobaccocheck_date" value="
 			<?php
-			$value = get_user_meta( $user->ID, '_wpr_witobaccocheck_date', '' );
-			echo $value[0];
-			?>
-			" />
-		</div>
+		$value = get_user_meta( $user->ID, '_wpr_witobaccocheck_date', '' );
+		echo $value[0];
+		?>
+			"/>
+      </div>
 		<?php
 	}
 }
+
 add_action( 'show_user_profile', 'wpr_witobaccocheck_status', 99 );
 add_action( 'edit_user_profile', 'wpr_witobaccocheck_status', 99 );
 
@@ -704,6 +723,7 @@ add_action( 'edit_user_profile', 'wpr_witobaccocheck_status', 99 );
  * Update custom user details
  *
  * @param [type] $user_id
+ *
  * @return void
  */
 function wpr_witobaccocheck_status_action( $user_id ) {
@@ -720,6 +740,7 @@ function wpr_witobaccocheck_status_action( $user_id ) {
 		}
 	}
 }
+
 add_action( 'personal_options_update', 'wpr_witobaccocheck_status_action', 99 );
 add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 );
 
@@ -727,6 +748,7 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
  * Webhook to catch site return
  *
  * @param [type] $query
+ *
  * @return void
  */
 function wpr_catch_witobaccocheck_callback() {
@@ -753,9 +775,9 @@ function wpr_catch_witobaccocheck_callback() {
 			}
 
 			$trainings = array( 6970, 7609 );
-			if ( true == in_array( $training_id, $trainings ) ) {
+			if ( TRUE == in_array( $training_id, $trainings ) ) {
 				$user_data = get_userdata( $user_id );
-				if ( false !== $user_data ) {
+				if ( FALSE !== $user_data ) {
 					$hash_test = md5( $user_data->user_email . '-' . $user_data->ID );
 					if ( $hash_test === $hash ) {
 						// WP_Logging::add( __( 'Hash OK', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Hash: ' . $_REQUEST['hash'] .' User id: ' . $_REQUEST['user_id'] , 0, 'event' );
@@ -795,6 +817,7 @@ function wpr_catch_witobaccocheck_callback() {
 	}
 
 }
+
 add_action( 'template_redirect', 'wpr_catch_witobaccocheck_callback' );
 
 /**
@@ -805,10 +828,10 @@ add_action( 'template_redirect', 'wpr_catch_witobaccocheck_callback' );
  * @return string
  */
 function wpr_add_quiz_timers( $the_editor ) {
-	if ( strpos( $the_editor, 'id="wp-question-editor-container"' ) !== false ) {
+	if ( strpos( $the_editor, 'id="wp-question-editor-container"' ) !== FALSE ) {
 		// This is the question editor, add our question timer field.
 		$timer_type = 'question';
-	} elseif ( strpos( $the_editor, 'id="wp-correctMsg-editor-container"' ) !== false ) {
+	} elseif ( strpos( $the_editor, 'id="wp-correctMsg-editor-container"' ) !== FALSE ) {
 		// This is the answer editor, add our answer timer field.
 		$timer_type = 'answer';
 	} else {
@@ -819,46 +842,47 @@ function wpr_add_quiz_timers( $the_editor ) {
 	$question_id = ( ! empty( $_GET['questionId'] ) ) ? intval( $_GET['questionId'] ) : 0;
 
 	if ( $post_id && $question_id ) {
-		$question_timers = get_post_meta( $post_id, '_wpr_question_timers', true );
+		$question_timers = get_post_meta( $post_id, '_wpr_question_timers', TRUE );
 
 		if ( ! is_array( $question_timers ) ) {
 			$question_timers = array();
 		}
 
 		$timer_field = function ( $id ) use ( $timer_type, $question_id, $question_timers ) {
-			$field_id    = "wpr_quiz_forced_{$id}_time";
-			$field_val   = ( isset( $question_timers[ $question_id ][ $timer_type ] ) ) ? $question_timers[ $question_id ][ $timer_type ] : '';
-			$field_desc  = ( 'question' === $id ) ? __( 'Minimum time a user has to spend on quiz question page before being able to answer.', 'wpr' ) : __( 'Minimum time a user has to spend on the quiz question page after answering and before being able to continue.', 'wpr' );
+			$field_id   = "wpr_quiz_forced_{$id}_time";
+			$field_val  = ( isset( $question_timers[ $question_id ][ $timer_type ] ) ) ? $question_timers[ $question_id ][ $timer_type ] : '';
+			$field_desc = ( 'question' === $id ) ? __( 'Minimum time a user has to spend on quiz question page before being able to answer.', 'wpr' ) : __( 'Minimum time a user has to spend on the quiz question page after answering and before being able to continue.', 'wpr' );
 			$field_desc .= ' ' . __( 'Examples: 40 (for 40 seconds), 20s, 45sec, 2m 30s, 2min 30sec, 1h 5m 10s, 1hr 5min 10sec' );
 			/* translators: %s: "Question" or "Answer". */
 			$field_label = sprintf( esc_html__( 'Forced %s Timer', 'wpr' ), ucfirst( $id ) );
 
 			return '<div class="sfwd_input" id="' . esc_attr( $field_id ) . '">' .
-				   '<span class="sfwd_option_label" style="text-align:right;vertical-align:top;">' .
-				   '<a class="sfwd_help_text_link" style="cursor:pointer;" title="' . __( 'Click for Help!' ) . '" onclick="jQuery( \'#' . $field_id . '_tip\' ).toggle();">' .
-				   '<img src="' . esc_url( LEARNDASH_LMS_PLUGIN_URL . 'assets/images/question.png' ) . '">' .
-				   '<label class="sfwd_label textinput">' . esc_html( $field_label ) . '</label>' .
-				   '</a>' .
-				   '</span>' .
-				   '<span class="sfwd_option_input">' .
-				   '<div class="sfwd_option_div">' .
-				   '<input name="' . esc_attr( $field_id ) . '" type="text" size="57" value="' . esc_attr( $field_val ) . '">' .
-				   '</div>' .
-				   '<div class="sfwd_help_text_div" style="display:none" id="' . esc_attr( $field_id ) . '_tip">' .
-				   '<label class="sfwd_help_text">' .
-				   esc_html( $field_desc ) .
-				   '</label>' .
-				   '</div>' .
-				   '</span>' .
-				   '<p style="clear:left"></p>' .
-				   '</div>';
+			       '<span class="sfwd_option_label" style="text-align:right;vertical-align:top;">' .
+			       '<a class="sfwd_help_text_link" style="cursor:pointer;" title="' . __( 'Click for Help!' ) . '" onclick="jQuery( \'#' . $field_id . '_tip\' ).toggle();">' .
+			       '<img src="' . esc_url( LEARNDASH_LMS_PLUGIN_URL . 'assets/images/question.png' ) . '">' .
+			       '<label class="sfwd_label textinput">' . esc_html( $field_label ) . '</label>' .
+			       '</a>' .
+			       '</span>' .
+			       '<span class="sfwd_option_input">' .
+			       '<div class="sfwd_option_div">' .
+			       '<input name="' . esc_attr( $field_id ) . '" type="text" size="57" value="' . esc_attr( $field_val ) . '">' .
+			       '</div>' .
+			       '<div class="sfwd_help_text_div" style="display:none" id="' . esc_attr( $field_id ) . '_tip">' .
+			       '<label class="sfwd_help_text">' .
+			       esc_html( $field_desc ) .
+			       '</label>' .
+			       '</div>' .
+			       '</span>' .
+			       '<p style="clear:left"></p>' .
+			       '</div>';
 		};
 
-			$the_editor .= $timer_field( $timer_type );
+		$the_editor .= $timer_field( $timer_type );
 	}
 
 	return $the_editor;
 }
+
 add_filter( 'the_editor', 'wpr_add_quiz_timers', 10, 2 );
 
 /**
@@ -885,7 +909,7 @@ function wpr_ld_quiz_edit() {
 
 	$question_id = intval( $_GET['questionId'] );
 
-	$question_timers = get_post_meta( $post->ID, '_wpr_question_timers', true );
+	$question_timers = get_post_meta( $post->ID, '_wpr_question_timers', TRUE );
 
 	if ( ! is_array( $question_timers ) ) {
 		$question_timers = array();
@@ -896,6 +920,7 @@ function wpr_ld_quiz_edit() {
 
 	update_post_meta( $post->ID, '_wpr_question_timers', $question_timers );
 }
+
 add_action( 'plugins_loaded', 'wpr_ld_quiz_edit', 0 );
 
 /**
@@ -912,8 +937,8 @@ function wpr_wc_checkout_update_customer( $customer, $data ) {
 	$user_id = $customer->get_id();
 
 	// Get the WP first name and last name (if they exist).
-	$user_first_name = get_user_meta( $user_id, 'first_name', true );
-	$user_last_name  = get_user_meta( $user_id, 'last_name', true );
+	$user_first_name = get_user_meta( $user_id, 'first_name', TRUE );
+	$user_last_name  = get_user_meta( $user_id, 'last_name', TRUE );
 
 	if ( empty( $user_first_name ) || empty( $user_last_name ) ) {
 		return;
@@ -924,7 +949,7 @@ function wpr_wc_checkout_update_customer( $customer, $data ) {
 	$customer->set_last_name( $user_last_name );
 }
 
-	add_action( 'woocommerce_checkout_update_customer', 'wpr_wc_checkout_update_customer', 10, 2 );
+add_action( 'woocommerce_checkout_update_customer', 'wpr_wc_checkout_update_customer', 10, 2 );
 
 /**
  * Set U.S. as the default checkout country.
@@ -935,7 +960,7 @@ function wpr_default_checkout_country() {
 	return 'US';
 }
 
-	add_filter( 'default_checkout_country', 'wpr_default_checkout_country' );
+add_filter( 'default_checkout_country', 'wpr_default_checkout_country' );
 
 /**
  * Populate the checkout state.
@@ -952,7 +977,7 @@ function wpr_default_checkout_state() {
 	return '';
 }
 
-	add_filter( 'default_checkout_state', 'wpr_default_checkout_state' );
+add_filter( 'default_checkout_state', 'wpr_default_checkout_state' );
 
 /**
  * User short state names in the state dropdown.
@@ -971,7 +996,7 @@ function wpr_us_states( $states ) {
 	return $short_state;
 }
 
-	add_filter( 'gform_us_states', 'wpr_us_states' );
+add_filter( 'gform_us_states', 'wpr_us_states' );
 
 /**
  * Generate unique usernames for registering users.
@@ -986,21 +1011,22 @@ function wpr_gform_user_registration_username( $username ) {
 	$max_number = 9999;
 	$user_add   = rand( $min_number, $max_number );
 	$str_length = strlen( (string) $max_number );
-	$user_add   = substr( str_repeat( 0, $str_length ) . $user_add, -$str_length );
+	$user_add   = substr( str_repeat( 0, $str_length ) . $user_add, - $str_length );
 	return sanitize_user( sanitize_title( $username . ' ' . $user_add ) );
 }
 
-	add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_username' );
+add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_username' );
 
 
 function wpr_send_trainee_data_fliped( $quiz_id, $user_id ) {
-	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', true );
+	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', TRUE );
 	if ( (int) $quiz_id['quiz'] === (int) $final_quiz_id ) {
 		if ( ! update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) ) ) {
 			add_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );
 		}
 	}
 }
+
 add_action( 'learndash_quiz_submitted', 'wpr_send_trainee_data_fliped', 1000, 2 );
 
 
@@ -1015,61 +1041,62 @@ function wpr_show_security_fields( $user ) {
 	wp_enqueue_style( 'jquery-ui' );
 
 	if ( ! current_user_can( 'edit_user', $user->ID ) ) {
-		return false;
+		return FALSE;
 	}
 
-	$middle_name = gform_get_meta( get_user_meta( $user->ID, '_gform-entry-id', true ), '1.4' );
+	$middle_name = gform_get_meta( get_user_meta( $user->ID, '_gform-entry-id', TRUE ), '1.4' );
 	?>
-		<h3><?php _e( 'Security details' ); ?></h3> 
-		<table class="form-table">
-			<tr>
-				<th><label for="_wpr_middle_name">Middle Name</label></th>
-				<td>
-				<input type="text" name="_wpr_middle_name" id="_wpr_middle_name" value="<?php echo $middle_name; ?>" class="regular-text" /><br />
-				</td>
-			</tr>
-			<tr>
-				<th><label for="_wpr_mfn">Mother's first name</label></th>
-				<td>
-				<input type="text" name="_wpr_mfn" id="_wpr_mfn" value="<?php echo get_user_meta( $user->ID, '_wpr_mfn', true ); ?>" class="regular-text" /><br />
-				</td>
-			</tr>
-			<tr>
-				<th><label for="_wpr_ssn">Server ID #</label></th>
-				<td>
-				<input type="text" name="_wpr_ssn" id="_wpr_ssn" value="<?php echo get_user_meta( $user->ID, '_wpr_ssn', true ); ?>" class="regular-text" /><br />
-				</td>
-			</tr>
-			<tr>
-				<th><label for="_wpr_dob">Birth date</label></th>
-				<td>
-				<?php
-					$dob = get_user_meta( $user->ID, '_wpr_dob', true );
-				if ( ! empty( $dob ) ) {
-					$dob = date_create( $dob );
-				}
-					$value = ( empty( $dob ) ) ? '' : date_format( $dob, 'm/d/Y' );
-				?>
-				<input type="text" name="_wpr_dob" id="wpr_dob" value="<?php echo $value; ?>" class="regular-text" /><br />
-				<span><em>Eg.: 04/24/1994</em></span>
-				<script type="text/javascript">
-					jQuery( document ).ready(function($) {
-						$( "#wpr_dob" ).datepicker({
-							minDate: "-100Y",
-							dateFormat: "mm/dd/yy"
-						});
-						<?php
-						if ( ! empty( $value ) ) {
-							echo "$( '#wpr_dob' ).datepicker('setDate', '" . $value . "');";
-						}
-						?>
-					});
-				</script>
-				</td>
-			</tr>
-		</table>
+  <h3><?php _e( 'Security details' ); ?></h3>
+  <table class="form-table">
+    <tr>
+      <th><label for="_wpr_middle_name">Middle Name</label></th>
+      <td>
+        <input type="text" name="_wpr_middle_name" id="_wpr_middle_name" value="<?php echo $middle_name; ?>" class="regular-text"/><br/>
+      </td>
+    </tr>
+    <tr>
+      <th><label for="_wpr_mfn">Mother's first name</label></th>
+      <td>
+        <input type="text" name="_wpr_mfn" id="_wpr_mfn" value="<?php echo get_user_meta( $user->ID, '_wpr_mfn', TRUE ); ?>" class="regular-text"/><br/>
+      </td>
+    </tr>
+    <tr>
+      <th><label for="_wpr_ssn">Server ID #</label></th>
+      <td>
+        <input type="text" name="_wpr_ssn" id="_wpr_ssn" value="<?php echo get_user_meta( $user->ID, '_wpr_ssn', TRUE ); ?>" class="regular-text"/><br/>
+      </td>
+    </tr>
+    <tr>
+      <th><label for="_wpr_dob">Birth date</label></th>
+      <td>
+		  <?php
+		  $dob = get_user_meta( $user->ID, '_wpr_dob', TRUE );
+		  if ( ! empty( $dob ) ) {
+			  $dob = date_create( $dob );
+		  }
+		  $value = ( empty( $dob ) ) ? '' : date_format( $dob, 'm/d/Y' );
+		  ?>
+        <input type="text" name="_wpr_dob" id="wpr_dob" value="<?php echo $value; ?>" class="regular-text"/><br/>
+        <span><em>Eg.: 04/24/1994</em></span>
+        <script type="text/javascript">
+          jQuery( document ).ready( function( $ ) {
+            $( "#wpr_dob" ).datepicker( {
+              minDate: "-100Y",
+              dateFormat: "mm/dd/yy"
+            } );
+			  <?php
+			  if ( ! empty( $value ) ) {
+				  echo "$( '#wpr_dob' ).datepicker('setDate', '" . $value . "');";
+			  }
+			  ?>
+          } );
+        </script>
+      </td>
+    </tr>
+  </table>
 	<?php
 }
+
 add_action( 'show_user_profile', 'wpr_show_security_fields', 10 );
 add_action( 'edit_user_profile', 'wpr_show_security_fields', 10 );
 
@@ -1080,11 +1107,11 @@ add_action( 'edit_user_profile', 'wpr_show_security_fields', 10 );
  */
 function save_security_fields( $user_id ) {
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
-		return false;
+		return FALSE;
 	}
 
 	if ( isset( $_POST['_wpr_middle_name'] ) ) {
-		$gf_entry = get_user_meta( $user_id, '_gform-entry-id', true );
+		$gf_entry = get_user_meta( $user_id, '_gform-entry-id', TRUE );
 		gform_update_meta( $gf_entry, '1.4', $_POST['_wpr_middle_name'] );
 	}
 

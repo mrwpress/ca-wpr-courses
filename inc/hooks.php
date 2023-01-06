@@ -601,12 +601,14 @@ function get_third_party_certificate_link() {
 		$key          = md5( $current_user->user_email . '-' . $current_user->ID );
 
 		$redirect_link = get_option( 'wpr_courses_settings_redirect_link' );
-		if ( FALSE === strpos( $redirect_link, '?' ) ) {
-			$redirect_link .= '?';
-		} else {
-			$redirect_link .= '&';
-		}
-		$redirect_link .= 'witobaccocheck=true&hash=' . $key . '&user_id=' . $current_user->ID;
+		$redirect_link = add_query_arg(
+			[
+				'witobaccocheck' => 'true',
+				'hash'           => $key,
+				'user_id'        => $current_user->ID
+			],
+			$redirect_link
+		);
 	}
 
 	return $redirect_link;

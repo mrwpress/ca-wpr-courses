@@ -701,8 +701,7 @@ function wpr_witobaccocheck_status( $user ) {
       <div>
         <input name="_wpr_witobaccocheck_date" value="
 			<?php
-		$value = get_user_meta( $user->ID, '_wpr_witobaccocheck_date', '' );
-		echo $value[0];
+		echo get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) ? get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) : '';
 		?>
 			"/>
       </div>
@@ -1015,9 +1014,7 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function wpr_send_trainee_data_fliped( $quiz_id, $user_id ) {
 	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', TRUE );
 	if ( (int) $quiz_id['quiz'] === (int) $final_quiz_id ) {
-		if ( ! update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) ) ) {
-			add_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );
-		}
+		update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );
 	}
 }
 
@@ -1038,6 +1035,7 @@ function wpr_show_security_fields( $user ) {
 		return FALSE;
 	}
 
+  // TODO:  This doesn't appear to be used on this site
 	$middle_name = gform_get_meta( get_user_meta( $user->ID, '_gform-entry-id', TRUE ), '1.4' );
 	?>
   <h3><?php _e( 'Security details' ); ?></h3>

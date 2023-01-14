@@ -22,8 +22,8 @@ class WPR_Courses_Settings {
 	 * Bootstraps the class and hooks required actions & filters.
 	 */
 	public static function init() {
-		add_action( 'woocommerce_settings_tabs_general', __CLASS__ . '::settings_tab' );
-		add_action( 'woocommerce_update_options_general', __CLASS__ . '::update_settings' );
+		add_action( 'woocommerce_settings_tabs_general', [ __CLASS__, 'settings_tab' ] );
+		add_action( 'woocommerce_update_options_general', [ __CLASS__, 'update_settings' ] );
 	}
 
 	/**
@@ -47,60 +47,60 @@ class WPR_Courses_Settings {
 	}
 
 	/**
-	 * Get all the settings for this plugin for @see woocommerce_admin_fields() function.
+	 * Get all the settings for this plugin for @return array Array of settings for @see woocommerce_admin_fields() function.
+	 * @see woocommerce_admin_fields() function.
 	 *
-	 * @return array Array of settings for @see woocommerce_admin_fields() function.
 	 */
 	public static function get_settings() {
 		$settings = array(
-			'section_title'               => array(
+			'section_title'         => array(
 				'name' => __( 'Course Settings', 'wpr' ),
 				'type' => 'title',
 				'id'   => 'wpr_courses_settings_section_title',
 			),
-			'register_form_id'            => array(
+			'register_form_id'      => array(
 				'name'     => __( 'Register Form ID', 'wpr' ),
 				'type'     => 'number',
 				'desc'     => __( 'Enter the ID of the Gravity Forms form that handles user registration, e.g. 1.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_gf_reg_id',
 			),
-			'course_id'                   => array(
+			'course_id'             => array(
 				'name'     => __( 'Course ID', 'wpr' ),
 				'type'     => 'number',
 				'desc'     => __( 'Enter the course ID, e.g. 388.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_course_id',
 			),
-			'course_product_id'           => array(
+			'course_product_id'     => array(
 				'name'     => __( 'Course Product ID', 'wpr' ),
 				'type'     => 'number',
 				'desc'     => __( 'Enter the ID of the product associated with the LearnDash course, e.g. 388.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_product_id',
 			),
-			'final_quiz_id'               => array(
+			'final_quiz_id'         => array(
 				'name'     => __( 'BAC Charts ID', 'wpr' ),
 				'type'     => 'number',
 				'desc'     => __( 'Enter the ID of the BAC Charts associated with the LearnDash course, e.g. 1790.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_quiz_id',
 			),
-			'final_updated_quiz_id'       => array(
+			'final_updated_quiz_id' => array(
 				'name'     => __( 'Final Quiz ID', 'wpr' ),
 				'type'     => 'number',
 				'desc'     => __( 'Enter the ID of the final quiz associated with the LearnDash course, e.g. 1790.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_quiz_final_id',
 			),
-			'certificate_id'              => array(
+			'certificate_id'        => array(
 				'name'     => __( 'Certificate ID', 'wpr' ),
 				'type'     => 'text',
 				'desc'     => __( 'Enter certificate ID.', 'wpr' ),
-				'desc_tip' => true,
+				'desc_tip' => TRUE,
 				'id'       => 'wpr_courses_settings_certificate_id',
 			),
-			'section_end'                 => array(
+			'section_end'           => array(
 				'type' => 'sectionend',
 				'id'   => 'wpr_courses_settings_section_end',
 			),
@@ -108,4 +108,5 @@ class WPR_Courses_Settings {
 		return apply_filters( 'wpr_courses_settings_fields', $settings );
 	}
 }
+
 WPR_Courses_Settings::init();

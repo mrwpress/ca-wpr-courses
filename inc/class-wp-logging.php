@@ -42,7 +42,7 @@ class WP_Logging {
 	 * @uses   $this->get_logs_to_prune()     Returns array of posts via get_posts of logs to prune
 	 * @uses   $this->prune_old_logs()        Deletes the logs that we don't want anymore
 	 */
-	public function prune_logs() {
+	public static function prune_logs() {
 
 		$should_we_prune = apply_filters( 'wp_logging_should_we_prune', FALSE );
 
@@ -50,10 +50,10 @@ class WP_Logging {
 			return;
 		}
 
-		$logs_to_prune = $this->get_logs_to_prune();
+		$logs_to_prune = self::get_logs_to_prune();
 
 		if ( isset( $logs_to_prune ) && ! empty( $logs_to_prune ) ) {
-			$this->prune_old_logs( $logs_to_prune );
+			self::prune_old_logs( $logs_to_prune );
 		}
 
 	} // prune_logs
@@ -70,7 +70,7 @@ class WP_Logging {
 	 *
 	 * @filter wp_logging_force_delete_log         Allows user to override the force delete setting which bypasses the trash
 	 */
-	private function prune_old_logs( $logs ) {
+	private static function prune_old_logs( $logs ) {
 
 		$force = apply_filters( 'wp_logging_force_delete_log', TRUE );
 
@@ -95,7 +95,7 @@ class WP_Logging {
 	 * @filter wp_logging_prune_when           Users can change how long ago we are looking for logs to prune
 	 * @filter wp_logging_prune_query_args     Gives users access to change any query args for pruning
 	 */
-	private function get_logs_to_prune() {
+	private static function get_logs_to_prune() {
 
 		$how_old = apply_filters( 'wp_logging_prune_when', '2 weeks ago' );
 
@@ -148,13 +148,13 @@ class WP_Logging {
 	 *
 	 */
 
-	public function register_post_type() {
+	public static function register_post_type() {
 
 		/* logs post type */
 
 		$log_args = array(
 			'labels'          => array( 'name' => __( 'API Logs', 'wpr' ) ),
-			'public'          => $this->show_logs,
+			'public'          => FALSE,
 			'show_ui'         => TRUE,
 			'query_var'       => FALSE,
 			'rewrite'         => FALSE,
@@ -183,10 +183,10 @@ class WP_Logging {
 	 *
 	 */
 
-	public function register_taxonomy() {
+	public static function register_taxonomy() {
 
 		register_taxonomy( 'wp_log_type', 'wp_log', array(
-			'public'  => $this->show_logs,
+			'public'  => FALSE,
 			'show_ui' => TRUE,
 		) );
 
@@ -310,7 +310,7 @@ class WP_Logging {
 	 */
 	public static function update_log( $log_data = array(), $log_meta = array() ) {
 
-		do_action( 'wp_pre_update_log', $log_id );
+		do_action( 'wp_pre_update_log', $log_data );
 
 		$defaults = array(
 			'post_type'   => 'wp_log',
@@ -329,10 +329,12 @@ class WP_Logging {
 					update_post_meta( $log_id, '_wp_log_' . sanitize_key( $key ), $meta );
 				}
 			}
+			do_action( 'wp_post_update_log', $log_id );
+			return TRUE;
 		}
 
-		do_action( 'wp_post_update_log', $log_id );
-
+		do_action( 'wp_post_update_log_failed', $log_id );
+		return FALSE;
 	}
 
 

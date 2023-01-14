@@ -34,7 +34,7 @@ define( 'WPR_COURSES_RETRIES', 2 );
 require_once WPR_COURSES_DIR . 'inc/class-wpr-courses-settings.php';
 
 // Load the logging class file.
-#require_once WPR_COURSES_DIR . 'inc/class-wp-logging.php';
+require_once WPR_COURSES_DIR . 'inc/class-wp-logging.php';
 
 // Load hooks.
 require_once WPR_COURSES_DIR . 'inc/hooks.php';

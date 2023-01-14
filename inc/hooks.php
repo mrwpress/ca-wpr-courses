@@ -746,6 +746,15 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
  */
 function wpr_catch_witobaccocheck_callback() {
 
+	// Link from WBL: localhost/wbl/account/?trainingId=7609&witobaccocheck=true&hash=ed89a0844bca5335a85e24be44c35d6f&user_id=3519
+
+	// Change that up based on CA API docs
+    /*
+     * https://abcbiz.abc.ca.gov/login
+     * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
+     * API Key: rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay
+     */
+
 	// TODO: Logging is behind very specific parameters
 	// TODO: These ridiculous $_REQUEST need updated with $_POST/$_GET - better yet, a utility function
 	if ( isset( $_REQUEST['witobaccocheck'] ) && 'true' == $_REQUEST['witobaccocheck'] ) {
@@ -807,7 +816,7 @@ function wpr_catch_witobaccocheck_callback() {
 
 		}
 
-		WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'No parameters sent', 0, 'event' );
+		WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'No parameters sent', 0, 'event' );
 		wp_die( __( 'No parameters sent', 'wpr' ) );
 
 	}

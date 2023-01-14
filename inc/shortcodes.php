@@ -119,7 +119,7 @@ function get_date_certificate_formatted( $atts ) {
 	$date = get_user_meta( get_current_user_id(), 'course_completed_100', TRUE );
 
 	if ( ! $date ) {
-		$date = time() + date( "Z" );
+		$date = time() . ' ' . date( "Z" );
 	}
 
 	$dt = new DateTime( "@$date" );

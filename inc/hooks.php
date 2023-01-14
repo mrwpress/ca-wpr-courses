@@ -746,24 +746,25 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
  */
 function wpr_catch_witobaccocheck_callback() {
 
+  // TODO: Logging is behind very specific parameters
 	if ( isset( $_REQUEST['witobaccocheck'] ) && 'true' == $_REQUEST['witobaccocheck'] ) {
 		if ( ( isset( $_REQUEST['trainingId'] ) && '' != $_REQUEST['trainingId'] ) || ( isset( $_REQUEST['hash'] ) && '' != $_REQUEST['hash'] ) || ( isset( $_REQUEST['user_id'] ) && '' != $_REQUEST['user_id'] ) ) {
 
 			$training_id = ( isset( $_REQUEST['trainingId'] ) ? $_REQUEST['trainingId'] : '' );
 			if ( '' == $training_id ) {
-				WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'trainingId not set', 0, 'event' );
+				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'trainingId not set', 0, 'event' );
 				wp_die( __( 'trainingId not set', 'wpr' ) );
 			}
 
 			$hash = ( isset( $_REQUEST['hash'] ) ? $_REQUEST['hash'] : '' );
 			if ( '' == $hash ) {
-				WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Hash not set', 0, 'event' );
+				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Hash not set', 0, 'event' );
 				wp_die( __( 'Hash not set', 'wpr' ) );
 			}
 
 			$user_id = ( isset( $_REQUEST['user_id'] ) ? $_REQUEST['user_id'] : '' );
 			if ( '' == $user_id ) {
-				WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'User id not set', 0, 'event' );
+				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'User id not set', 0, 'event' );
 				wp_die( __( 'User id not set', 'wpr' ) );
 			}
 

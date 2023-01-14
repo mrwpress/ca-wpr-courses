@@ -22,15 +22,15 @@ function wpr_add_return_to_test_func() {
 		$quizz_id     = get_option( 'wpr_courses_settings_quiz_id' );
 		$cert_user_id = $user_data->ID;
 
-		$quiz_done         = false;
-		$time              = isset( $_GET['time'] ) ? intval( $_GET['time'] ) : -1;
-		$quizinfo          = get_user_meta( $cert_user_id, '_sfwd-quizzes', true );
-		$selected_quizinfo = $selected_quizinfo2 = null;
+		$quiz_done         = FALSE;
+		$time              = isset( $_GET['time'] ) ? intval( $_GET['time'] ) : - 1;
+		$quizinfo          = get_user_meta( $cert_user_id, '_sfwd-quizzes', TRUE );
+		$selected_quizinfo = $selected_quizinfo2 = NULL;
 		if ( ! empty( $quizinfo ) ) {
 			foreach ( $quizinfo as $quiz_i ) {
 
 				if ( ( ( isset( $quiz_i['time'] ) ) && intval( $quiz_i['time'] ) == intval( $time ) )
-					&& ( intval( $quiz_i['quiz'] ) === intval( $quizz_id ) ) ) {
+				     && ( intval( $quiz_i['quiz'] ) === intval( $quizz_id ) ) ) {
 					$selected_quizinfo = $quiz_i;
 					break;
 				}
@@ -46,8 +46,8 @@ function wpr_add_return_to_test_func() {
 			$certificate_threshold = learndash_get_setting( $selected_quizinfo['quiz'], 'threshold' );
 
 			if ( ( isset( $selected_quizinfo['percentage'] ) && $selected_quizinfo['percentage'] >= $certificate_threshold * 100 ) || ( isset( $selected_quizinfo['count'] ) &&
-			 ( $selected_quizinfo['score'] / $selected_quizinfo['count'] ) >= $certificate_threshold ) ) {
-				$quiz_done = true;
+			                                                                                                                            ( $selected_quizinfo['score'] / $selected_quizinfo['count'] ) >= $certificate_threshold ) ) {
+				$quiz_done = TRUE;
 			}
 		}
 
@@ -72,7 +72,7 @@ add_shortcode( 'wpr_add_return_to_test', 'wpr_add_return_to_test_func' );
 /**
  * Birthy date format
  */
-function get_birth_date_formatted( $atts, $content = null ) {
+function get_birth_date_formatted( $atts, $content = NULL ) {
 	$a = shortcode_atts(
 		array(
 			'format' => 'm/d/Y',
@@ -80,17 +80,18 @@ function get_birth_date_formatted( $atts, $content = null ) {
 		$atts
 	);
 
-	$date = date_create( get_user_meta( get_current_user_id(), '_wpr_dob', true ) );
+	$date = date_create( get_user_meta( get_current_user_id(), '_wpr_dob', TRUE ) );
 
 	return date_format( $date, $a['format'] );
 }
+
 add_shortcode( 'birth_date_formatted', 'get_birth_date_formatted' );
 
 
 /**
  * Current date format for certificate
  */
-function get_current_date_formatted( $atts, $content = null ) {
+function get_current_date_formatted( $atts, $content = NULL ) {
 	$a = shortcode_atts(
 		array(
 			'format' => 'm/d/Y',
@@ -100,6 +101,7 @@ function get_current_date_formatted( $atts, $content = null ) {
 
 	return gmdate( $a['format'] );
 }
+
 add_shortcode( 'current_date_formatted', 'get_current_date_formatted' );
 
 /**
@@ -114,14 +116,15 @@ function get_date_certificate_formatted( $atts ) {
 	);
 
 	// Get last date of completion certificate saved in user_meta
-	$date = get_user_meta( get_current_user_id(), 'course_completed_100', true );
+	$date = get_user_meta( get_current_user_id(), 'course_completed_100', TRUE );
 
-	if (! $date) {
-		$date = time()+date("Z");
+	if ( ! $date ) {
+		$date = time() + date( "Z" );
 	}
 
-	$dt = new DateTime("@$date");
+	$dt = new DateTime( "@$date" );
 
-	return $dt->format($a['format']);
+	return $dt->format( $a['format'] );
 }
+
 add_shortcode( 'date_certificate', 'get_date_certificate_formatted' );

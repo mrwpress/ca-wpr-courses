@@ -752,24 +752,24 @@ function wpr_catch_witobaccocheck_callback() {
 		if ( ( isset( $_REQUEST['trainingId'] ) && '' != $_REQUEST['trainingId'] ) || ( isset( $_REQUEST['hash'] ) && '' != $_REQUEST['hash'] ) || ( isset( $_REQUEST['user_id'] ) && '' != $_REQUEST['user_id'] ) ) {
 
 			$training_id = ( isset( $_REQUEST['trainingId'] ) ? $_REQUEST['trainingId'] : '' );
-			if ( '' == $training_id ) {
+			if ( empty( $training_id ) ) {
 				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'trainingId not set', 0, 'event' );
 				wp_die( __( 'trainingId not set', 'wpr' ) );
 			}
 
 			$hash = ( isset( $_REQUEST['hash'] ) ? $_REQUEST['hash'] : '' );
-			if ( '' == $hash ) {
+			if ( empty( $hash ) ) {
 				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Hash not set', 0, 'event' );
 				wp_die( __( 'Hash not set', 'wpr' ) );
 			}
 
-			$user_id = ( isset( $_REQUEST['user_id'] ) ? $_REQUEST['user_id'] : '' );
-			if ( '' == $user_id ) {
+			$user_id = ( isset( $_REQUEST['user_id'] ) ? $_REQUEST['user_id'] : 0 );
+			if ( empty( $user_id ) ) {
 				WP_Logging::add( __( 'Request not enough parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'User id not set', 0, 'event' );
 				wp_die( __( 'User id not set', 'wpr' ) );
 			}
 
-			// TODO: This hard coded because it comes from the API return link (potentially)
+			// TODO: This hard coded because it comes from the API return link
 			$trainings = array( 6970, 7609 );
 			if ( in_array( $training_id, $trainings ) ) {
 				$user_data = get_userdata( $user_id );

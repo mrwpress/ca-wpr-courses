@@ -206,7 +206,7 @@ class WP_Logging {
 	 * Checks to see if the specified type is in the registered list of types
 	 *
 	 * @access      private
-	 * @return     array
+	 * @return      boolean
 	 * @since       1.0
 	 *
 	 *
@@ -295,7 +295,6 @@ class WP_Logging {
 
 	}
 
-
 	/**
 	 * Update and existing log item
 	 *
@@ -337,7 +336,6 @@ class WP_Logging {
 		return FALSE;
 	}
 
-
 	/**
 	 * Easily retrieves log items for a particular object ID
 	 *
@@ -357,7 +355,6 @@ class WP_Logging {
 				'log_type'    => $type,
 			)
 		);
-
 	}
 
 

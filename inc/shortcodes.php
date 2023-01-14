@@ -18,8 +18,7 @@ function wpr_add_return_to_test_func() {
 	$html      = '';
 	$user_data = wp_get_current_user();
 	if ( 0 !== $user_data->ID ) {
-		$status_test  = get_user_meta( $user_data->ID, '_wpr_witobaccocheck_status', 'false' );
-		$course_id    = get_option( 'wpr_courses_settings_course_id' );
+		$status_test  = get_user_meta( $user_data->ID, '_wpr_witobaccocheck_status' );
 		$quizz_id     = get_option( 'wpr_courses_settings_quiz_id' );
 		$cert_user_id = $user_data->ID;
 
@@ -106,7 +105,7 @@ add_shortcode( 'current_date_formatted', 'get_current_date_formatted' );
 /**
  * Date complete certificate
  */
-function get_date_certificate_formatted( $atts, $content = null ) {
+function get_date_certificate_formatted( $atts ) {
 	$a = shortcode_atts(
 		array(
 			'format' => 'm/d/Y',

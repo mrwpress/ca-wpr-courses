@@ -1013,6 +1013,8 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 
 
 function wpr_send_trainee_data_fliped( $quiz_data, $user_id ) {
+	// Fires when quiz is marked complete
+	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
 	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', TRUE );
 	if ( (int) $quiz_data['quiz'] === (int) $final_quiz_id ) {
 		update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );

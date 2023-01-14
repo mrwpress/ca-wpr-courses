@@ -767,8 +767,9 @@ function wpr_catch_witobaccocheck_callback() {
 				wp_die( __( 'User id not set', 'wpr' ) );
 			}
 
+			// TODO: Why is this hard coded?
 			$trainings = array( 6970, 7609 );
-			if ( TRUE == in_array( $training_id, $trainings ) ) {
+			if ( in_array( $training_id, $trainings ) ) {
 				$user_data = get_userdata( $user_id );
 				if ( FALSE !== $user_data ) {
 					$hash_test = md5( $user_data->user_email . '-' . $user_data->ID );
@@ -783,30 +784,30 @@ function wpr_catch_witobaccocheck_callback() {
 							if ( is_numeric( $redirect_link ) ) {
 								$redirect_link = get_permalink( $redirect_link );
 							}
-							wp_redirect( $redirect_link );
-						} else {
-							// GENERATE CERTIFICATE
-							$url = get_site_certificate_link( $user_data->ID );
-							wp_redirect( $url );
+							wp_safe_redirect( $redirect_link );
 						}
-						exit;
 
-					} else {
-						WP_Logging::add( __( 'Hash not matching', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Incorrect hash sent: ' . $_REQUEST['hash'] . ' User id: ' . $_REQUEST['user_id'], 0, 'event' );
-						wp_die( __( 'Incorrect hash sent', 'wpr' ) );
+						// GENERATE CERTIFICATE
+						$url = get_site_certificate_link( $user_data->ID );
+						wp_safe_redirect( $url );
 					}
-				} else {
-					WP_Logging::add( __( 'User not found', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Incorrect user sent: ' . $_REQUEST['user_id'], 0, 'event' );
-					wp_die( __( 'Incorrect user sent', 'wpr' ) );
+
+					WP_Logging::add( __( 'Hash not matching', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Incorrect hash sent: ' . $_REQUEST['hash'] . ' User id: ' . $_REQUEST['user_id'], 0, 'event' );
+					wp_die( __( 'Incorrect hash sent', 'wpr' ) );
+
 				}
-			} else {
-				WP_Logging::add( __( 'Training id not matching', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Training id not matching', 0, 'event' );
-				wp_die( __( 'Training id not matching', 'wpr' ) );
+				WP_Logging::add( __( 'User not found', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Incorrect user sent: ' . $_REQUEST['user_id'], 0, 'event' );
+				wp_die( __( 'Incorrect user sent', 'wpr' ) );
+
 			}
-		} else {
-			WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'No parameters sent', 0, 'event' );
-			wp_die( __( 'No parameters sent', 'wpr' ) );
+			WP_Logging::add( __( 'Training id not matching', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'Training id not matching', 0, 'event' );
+			wp_die( __( 'Training id not matching', 'wpr' ) );
+
 		}
+
+		WP_Logging::add( __( 'Request not enought parameters', 'wpr' ) . ' @ ' . date( 'Y-m-d h:i:s' ), 'No parameters sent', 0, 'event' );
+		wp_die( __( 'No parameters sent', 'wpr' ) );
+
 	}
 
 }
@@ -1011,13 +1012,14 @@ function wpr_gform_user_registration_username( $username ) {
 add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_username' );
 
 
-function wpr_send_trainee_data_fliped( $quiz_id, $user_id ) {
+function wpr_send_trainee_data_fliped( $quiz_data, $user_id ) {
 	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', TRUE );
-	if ( (int) $quiz_id['quiz'] === (int) $final_quiz_id ) {
+	if ( (int) $quiz_data['quiz'] === (int) $final_quiz_id ) {
 		update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );
 	}
 }
 
+// @help: https://developers.learndash.com/hook/learndash_quiz_submitted/
 add_action( 'learndash_quiz_submitted', 'wpr_send_trainee_data_fliped', 1000, 2 );
 
 

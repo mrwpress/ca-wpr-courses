@@ -746,7 +746,8 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
  */
 function wpr_catch_witobaccocheck_callback() {
 
-  // TODO: Logging is behind very specific parameters
+	// TODO: Logging is behind very specific parameters
+	// TODO: These ridiculous $_REQUEST need updated with $_POST/$_GET - better yet, a utility function
 	if ( isset( $_REQUEST['witobaccocheck'] ) && 'true' == $_REQUEST['witobaccocheck'] ) {
 		if ( ( isset( $_REQUEST['trainingId'] ) && '' != $_REQUEST['trainingId'] ) || ( isset( $_REQUEST['hash'] ) && '' != $_REQUEST['hash'] ) || ( isset( $_REQUEST['user_id'] ) && '' != $_REQUEST['user_id'] ) ) {
 
@@ -768,7 +769,7 @@ function wpr_catch_witobaccocheck_callback() {
 				wp_die( __( 'User id not set', 'wpr' ) );
 			}
 
-			// TODO: Why is this hard coded?
+			// TODO: This hard coded because it comes from the API return link (potentially)
 			$trainings = array( 6970, 7609 );
 			if ( in_array( $training_id, $trainings ) ) {
 				$user_data = get_userdata( $user_id );

@@ -1035,7 +1035,7 @@ function wpr_show_security_fields( $user ) {
 		return FALSE;
 	}
 
-  // TODO:  This doesn't appear to be used on this site
+	// TODO:  This doesn't appear to be used on this site
 	$middle_name = gform_get_meta( get_user_meta( $user->ID, '_gform-entry-id', TRUE ), '1.4' );
 	?>
   <h3><?php _e( 'Security details' ); ?></h3>

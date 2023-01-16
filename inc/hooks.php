@@ -21,6 +21,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+add_action('admin_init', 'my_admin_init');
+function my_admin_init() {
+	//The URL you're sending the request to.
+//	$url = 'https://api-services-sb.abc.ca.gov/servers/313230866/lastnames/Albright'; // Sandbox
+	$url = 'https://api-services.abc.ca.gov/servers/313230866/lastnames/Albright'; // Live
+
+
+//Create a cURL handle.
+	$ch = curl_init($url);
+
+//Create an array of custom headers.
+	$customHeaders = [
+		'X-API-Key: ' . ABC_API_KEY
+	];
+
+//Use the CURLOPT_HTTPHEADER option to use our
+//custom headers.
+	curl_setopt($ch, CURLOPT_HTTPHEADER, $customHeaders);
+
+//Set options to follow redirects and return output
+//as a string.
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+//Execute the request.
+	$result = json_decode(curl_exec($ch));
+  echo 'chuck';
+}
+
 function wpr_change_print_certificate_label( $label ) {
 	return __( 'Print Responsible Beverage Course Certificate', 'wpr' );
 }
@@ -747,13 +776,36 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
 function wpr_catch_witobaccocheck_callback() {
 
 	// Link from WBL: localhost/wbl/account/?trainingId=7609&witobaccocheck=true&hash=ed89a0844bca5335a85e24be44c35d6f&user_id=3519
+	// Then redirects to => http://localhost/wbl/well-done/ - Because this function is in the template_redirect hook
 
 	// Change that up based on CA API docs
-    /*
-     * https://abcbiz.abc.ca.gov/login
-     * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
-     * API Key: rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay
-     */
+	/*
+   * https://abcbiz.abc.ca.gov/login
+   * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
+   * API Key: rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay
+	 * Program ID: 312677644
+	 * Provider ID: 312677985
+	 * Server ID: get_user_meta( $user->ID, '_wpr_ssn', TRUE );
+	 * Server Last Name: get_user_meta( $user->ID, 'last_name', TRUE );
+	 *
+	 * const ABC_API_KEY = 'rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay';
+      const PROGRAM_ID  = 312677644;
+      const PROVIDER_ID = 312677985;
+	 *
+	 * GET Method - This method is used to retrieve resource representation/information only – and not
+	 * to modify it in any way. As GET requests do not change the state of the resource, these are said
+	 * to be safe methods. Server verification is done using the GET method. Parameters to pass to this
+	 * method are Server ID and Server Last Name. Using this method, Online Training Providers can pass
+	 * the Server ID and Last Name provided by a Server and validate that a Server is registered in the
+	 * RBS system and that the information provided by the Server is valid.
+	 *
+	 * CURL:  curl -X GET -H "X-API-Key: YOUR-API-KEY" "https://api-services-sb.abc.ca.gov/servers/{serverId}/lastnames/{lastName}"
+
+	Test Data:
+	- Server Last: Albright
+	- Server ID:  313230866
+	 *
+   */
 
 	// TODO: Logging is behind very specific parameters
 	// TODO: These ridiculous $_REQUEST need updated with $_POST/$_GET - better yet, a utility function

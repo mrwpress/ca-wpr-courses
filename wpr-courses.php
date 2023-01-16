@@ -29,9 +29,10 @@ define( 'WPR_COURSES_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPR_COURSES_URI', plugin_dir_url( __FILE__ ) );
 // Maximum security question retries.
 define( 'WPR_COURSES_RETRIES', 2 );
-const ABC_API_KEY = 'rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay';
-const PROGRAM_ID  = 312677644;
-const PROVIDER_ID = 312677985;
+const ABC_API_KEY                  = 'rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay';
+const WPR_COURSES_STATUS_CERTIFIED = 'Certified';
+const PROGRAM_ID                   = 312677644;
+const PROVIDER_ID                  = 312677985;
 
 // Load the settings class file.
 require_once WPR_COURSES_DIR . 'inc/class-wpr-courses-settings.php';

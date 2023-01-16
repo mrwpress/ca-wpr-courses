@@ -21,33 +21,134 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action('admin_init', 'my_admin_init');
+function wpr_safe_request( $key, $default = '', $type = 'text' ) {
+	if ( ! isset( $_POST[ $key ] ) && ! isset( $_GET[ $key ] ) ) {
+		return $default;
+	}
+
+	$value = ( isset( $_POST[ $key ] ) ) ? $_POST[ $key ] : $_GET[ $key ];
+
+	if ( 'array' == $type || is_array( $value ) ) {
+		return recursive_sanitize_text_field( $value );
+	}
+
+	if ( 'textarea' == $type ) {
+		return sanitize_textarea_field( $value );
+	}
+
+	if ( 'email' == $type ) {
+		return sanitize_email( $value );
+	}
+
+	return sanitize_text_field( $value );
+}
+
+function recursive_sanitize_text_field( $array ) {
+	$new_array = [];
+	foreach ( $array as $key => &$value ) {
+		if ( is_array( $value ) ) {
+			$value = recursive_sanitize_text_field( $value );
+		} else {
+			$new_array[ $key ] = $value;
+		}
+	}
+
+	return $new_array;
+}
+
+function wpr_courses_get( $array, $keys = NULL, $default = NULL ) {
+	// when no key passed in, just return the original array / object
+	if ( NULL === $keys ) {
+		return $array;
+	}
+
+	if ( is_object( $array ) ) {
+		$array = (array) $array;
+	}
+
+	$key = ( ! is_array( $keys ) ) ? $keys : $keys[0];
+
+	if ( ! is_array( $array ) || ! array_key_exists( $key, $array ) ) {
+		return $default;
+	}
+
+	$value = $array[ $key ];
+
+	if ( ! is_array( $keys ) || count( $keys ) == 1 ) {
+		return $value;
+	}
+
+	return wpr_courses_get( $value, array_slice( $keys, 1 ), $default );
+}
+
+add_action( 'manage_users_columns', 'kjl_modify_user_columns' );
+function kjl_modify_user_columns( $column_headers ) {
+	$column_headers['ca_certified'] = 'CA Certified';
+	return $column_headers;
+}
+
+add_action( 'manage_users_custom_column', 'kjl_user_posts_count_column_content', 10, 3 );
+function kjl_user_posts_count_column_content( $value, $column_name, $user_id ) {
+	if ( 'ca_certified' == $column_name ) {
+		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes': 'No';
+	}
+	return $value;
+}
+
+add_action( 'admin_init', 'my_admin_init' );
 function my_admin_init() {
-	//The URL you're sending the request to.
+
+	/*
+   * https://abcbiz.abc.ca.gov/login
+   * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
+   */
+
+	global $pagenow;
+	if ( $pagenow == 'user-edit.php' ) {
+		$user_id = wpr_safe_request( 'user_id', 0 ) ? wpr_safe_request( 'user_id' ) : get_current_user_id();
+		if ( ! $user_id ) {
+			return;
+		}
+
+		$server_id = get_user_meta( $user_id, '_wpr_ssn', TRUE );
+		if ( ! $server_id ) {
+			return;
+		}
+
+		$last_name = get_user_meta( $user_id, 'last_name', TRUE );
+		if ( ! $last_name ) {
+			return;
+		}
+
+		//The URL you're sending the request to.
 //	$url = 'https://api-services-sb.abc.ca.gov/servers/313230866/lastnames/Albright'; // Sandbox
-	$url = 'https://api-services.abc.ca.gov/servers/313230866/lastnames/Albright'; // Live
+		$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name; // Live
 
 
 //Create a cURL handle.
-	$ch = curl_init($url);
+		$ch = curl_init( $url );
 
 //Create an array of custom headers.
-	$customHeaders = [
-		'X-API-Key: ' . ABC_API_KEY
-	];
+		$customHeaders = [
+			'X-API-Key: ' . ABC_API_KEY
+		];
 
 //Use the CURLOPT_HTTPHEADER option to use our
 //custom headers.
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $customHeaders);
+		curl_setopt( $ch, CURLOPT_HTTPHEADER, $customHeaders );
 
 //Set options to follow redirects and return output
 //as a string.
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, TRUE );
 
 //Execute the request.
-	$result = json_decode(curl_exec($ch));
-  echo 'chuck';
+		$result = json_decode( curl_exec( $ch ) );
+		update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
+		update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
+	}
+
+
 }
 
 function wpr_change_print_certificate_label( $label ) {
@@ -726,15 +827,24 @@ function wpr_witobaccocheck_status( $user ) {
 		</div>
 		<br />
 		-->
-      <h3><?php esc_html_e( 'Test Done DATE', 'wpr' ); ?></h3>
-      <div>
-        <input name="_wpr_witobaccocheck_date" value="
-			<?php
-		echo get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) ? get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) : '';
-		?>
-			"/>
-      </div>
+      <!--      <h3>--><?php //esc_html_e( 'Test Done DATE', 'wpr' ); ?><!--</h3>-->
+      <!--      <div>-->
+      <!--        <input name="_wpr_witobaccocheck_date" value="-->
+      <!--			--><?php
+//		echo get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) ? get_user_meta( $user->ID, '_wpr_witobaccocheck_date', TRUE ) : '';
+//		?>
+      <!--			"/>-->
+      <!--      </div>-->
 		<?php
+		$cert_details = get_user_meta( $user->ID, 'cabl_cert_info', TRUE );
+		echo '<div class="cabl_cert_status">Status: ' . get_user_meta( $user->ID, 'cabl_cert_status', TRUE ) . '</div>';
+		if ( ! empty( $cert_details ) ) {
+			$details = json_decode( $cert_details );
+			echo '<div>';
+			echo '<pre>';
+			echo print_r( $details );
+			echo '</div>';
+		}
 	}
 }
 
@@ -774,38 +884,6 @@ add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 )
  * @return void
  */
 function wpr_catch_witobaccocheck_callback() {
-
-	// Link from WBL: localhost/wbl/account/?trainingId=7609&witobaccocheck=true&hash=ed89a0844bca5335a85e24be44c35d6f&user_id=3519
-	// Then redirects to => http://localhost/wbl/well-done/ - Because this function is in the template_redirect hook
-
-	// Change that up based on CA API docs
-	/*
-   * https://abcbiz.abc.ca.gov/login
-   * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
-   * API Key: rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay
-	 * Program ID: 312677644
-	 * Provider ID: 312677985
-	 * Server ID: get_user_meta( $user->ID, '_wpr_ssn', TRUE );
-	 * Server Last Name: get_user_meta( $user->ID, 'last_name', TRUE );
-	 *
-	 * const ABC_API_KEY = 'rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay';
-      const PROGRAM_ID  = 312677644;
-      const PROVIDER_ID = 312677985;
-	 *
-	 * GET Method - This method is used to retrieve resource representation/information only – and not
-	 * to modify it in any way. As GET requests do not change the state of the resource, these are said
-	 * to be safe methods. Server verification is done using the GET method. Parameters to pass to this
-	 * method are Server ID and Server Last Name. Using this method, Online Training Providers can pass
-	 * the Server ID and Last Name provided by a Server and validate that a Server is registered in the
-	 * RBS system and that the information provided by the Server is valid.
-	 *
-	 * CURL:  curl -X GET -H "X-API-Key: YOUR-API-KEY" "https://api-services-sb.abc.ca.gov/servers/{serverId}/lastnames/{lastName}"
-
-	Test Data:
-	- Server Last: Albright
-	- Server ID:  313230866
-	 *
-   */
 
 	// TODO: Logging is behind very specific parameters
 	// TODO: These ridiculous $_REQUEST need updated with $_POST/$_GET - better yet, a utility function

@@ -90,7 +90,7 @@ function kjl_modify_user_columns( $column_headers ) {
 add_action( 'manage_users_custom_column', 'kjl_user_posts_count_column_content', 10, 3 );
 function kjl_user_posts_count_column_content( $value, $column_name, $user_id ) {
 	if ( 'ca_certified' == $column_name ) {
-		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes': 'No';
+		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
 	}
 	return $value;
 }
@@ -143,12 +143,19 @@ function my_admin_init() {
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, TRUE );
 
 //Execute the request.
-		$result = json_decode( curl_exec( $ch ) );
-		update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
-		update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
+		$raw_data = curl_exec( $ch );
+		if ( ! empty( $raw_data ) ) {
+			$result = json_decode( $raw_data );
+
+			update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
+			update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
+			$code = wpr_courses_get( $result, 'code', 200 );
+			if ( $code != 200 ) {
+				$api_log = new WP_Logging();
+				$api_log::add( 'User ID:' . $user_id . ' Code: ' . $code, $raw_data );
+			}
+		}
 	}
-
-
 }
 
 function wpr_change_print_certificate_label( $label ) {

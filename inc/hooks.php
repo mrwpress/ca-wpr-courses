@@ -110,52 +110,97 @@ function my_admin_init() {
 			return;
 		}
 
-		$server_id = get_user_meta( $user_id, '_wpr_ssn', TRUE );
-		if ( ! $server_id ) {
-			return;
-		}
+		ca_user_api_call( $user_id );
+	}
+}
 
-		$last_name = get_user_meta( $user_id, 'last_name', TRUE );
-		if ( ! $last_name ) {
-			return;
-		}
+function ca_user_api_call( $user_id ) {
+	if ( ! $user_id ) {
+		return;
+	}
 
-		//The URL you're sending the request to.
+	$server_id = get_user_meta( $user_id, '_wpr_ssn', TRUE );
+	if ( ! $server_id ) {
+		return;
+	}
+
+	$last_name = get_user_meta( $user_id, 'last_name', TRUE );
+	if ( ! $last_name ) {
+		return;
+	}
+
+	//The URL you're sending the request to.
 //	$url = 'https://api-services-sb.abc.ca.gov/servers/313230866/lastnames/Albright'; // Sandbox
-		$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name; // Live
+	$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name; // Live
 
 
 //Create a cURL handle.
-		$ch = curl_init( $url );
+	$ch = curl_init( $url );
 
 //Create an array of custom headers.
-		$customHeaders = [
-			'X-API-Key: ' . ABC_API_KEY
-		];
+	$customHeaders = [
+		'X-API-Key: ' . ABC_API_KEY
+	];
 
 //Use the CURLOPT_HTTPHEADER option to use our
 //custom headers.
-		curl_setopt( $ch, CURLOPT_HTTPHEADER, $customHeaders );
+	curl_setopt( $ch, CURLOPT_HTTPHEADER, $customHeaders );
 
 //Set options to follow redirects and return output
 //as a string.
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, TRUE );
+	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
+	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, TRUE );
 
 //Execute the request.
-		$raw_data = curl_exec( $ch );
-		if ( ! empty( $raw_data ) ) {
-			$result = json_decode( $raw_data );
+	$raw_data = curl_exec( $ch );
+	if ( ! empty( $raw_data ) ) {
+		$result = json_decode( $raw_data );
 
-			update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
-			update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
-			$code = wpr_courses_get( $result, 'code', 200 );
-			if ( $code != 200 ) {
-				$api_log = new WP_Logging();
-				$api_log::add( 'User ID:' . $user_id . ' Code: ' . $code, $raw_data );
-			}
+		update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
+		update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
+		$code = wpr_courses_get( $result, 'code', 200 );
+		if ( $code != 200 ) {
+			$api_log = new WP_Logging();
+			$api_log::add( 'User ID:' . $user_id . ' Code: ' . $code, $raw_data );
 		}
 	}
+}
+
+add_filter( 'cron_schedules', 'ca_cert_add_cron_interval' );
+function ca_cert_add_cron_interval( $schedules ) {
+	$schedules['five_minute'] = array(
+		'interval' => 300,
+		'display'  => esc_html__( 'Every Five Minutes' ),
+	);
+	return $schedules;
+}
+
+if ( ! wp_next_scheduled( 'ca_cron_task_hook' ) ) {
+	wp_schedule_event( time(), 'five_minute', 'ca_cron_task_hook' );
+}
+add_action( 'ca_cron_task_hook', 'ca_process_user_cert_data' );
+
+function ca_process_user_cert_data() {
+	$args  = [
+		'number'     => 200,
+		'meta_query' => [
+			'relation' => 'OR',
+			[
+				'key'     => 'cabl_cert_status',
+				'compare' => 'NOT EXISTS'
+			]
+		]
+	];
+	$query = new WP_User_Query( $args );
+
+	if ( $query->get_results() ) {
+		foreach ( $query->get_results() as $result ) {
+			$user_id = $result->ID;
+			ca_user_api_call( $user_id );
+		}
+	}
+
+	wp_reset_postdata();
 }
 
 function wpr_change_print_certificate_label( $label ) {

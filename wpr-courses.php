@@ -33,18 +33,13 @@ const ABC_API_KEY                  = 'rE1m9FSUFP5sTpKMJlzYo1wBQIvATAra6bs202Ay';
 const WPR_COURSES_STATUS_CERTIFIED = 'Certified';
 const PROGRAM_ID                   = 312677644;
 const PROVIDER_ID                  = 312677985;
-
-// Load the settings class file.
-require_once WPR_COURSES_DIR . 'inc/class-wpr-courses-settings.php';
+const CABL_CERT_STATUS             = 'cabl_cert_status';
+const CABL_CERT_INFO               = 'cabl_cert_info';
+const CABL_CERT_DATE               = 'cabl_cert_date';
+const CABL_STATUS_CERTIFIED        = 'Certified';
 
 // Load the logging class file.
 require_once WPR_COURSES_DIR . 'inc/class-wp-logging.php';
 
 // Load hooks.
 require_once WPR_COURSES_DIR . 'inc/hooks.php';
-
-// Load shortcodes.
-require_once WPR_COURSES_DIR . 'inc/shortcodes.php';
-
-// Load Gravity Hook.
-require_once WPR_COURSES_DIR . 'inc/gravity-form-hook.php';

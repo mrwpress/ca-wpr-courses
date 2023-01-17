@@ -81,14 +81,14 @@ function wpr_courses_get( $array, $keys = NULL, $default = NULL ) {
 	return wpr_courses_get( $value, array_slice( $keys, 1 ), $default );
 }
 
-add_action( 'manage_users_columns', 'kjl_modify_user_columns' );
-function kjl_modify_user_columns( $column_headers ) {
+add_action( 'manage_users_columns', 'cabl_modify_user_columns' );
+function cabl_modify_user_columns( $column_headers ) {
 	$column_headers['ca_certified'] = 'CA Certified';
 	return $column_headers;
 }
 
-add_action( 'manage_users_custom_column', 'kjl_user_posts_count_column_content', 10, 3 );
-function kjl_user_posts_count_column_content( $value, $column_name, $user_id ) {
+add_action( 'manage_users_custom_column', 'cabl_user_posts_count_column_content', 10, 3 );
+function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) {
 	if ( 'ca_certified' == $column_name ) {
 		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
 	}
@@ -190,6 +190,11 @@ function ca_process_user_cert_data() {
 			[
 				'key'     => 'cabl_cert_status',
 				'compare' => 'NOT EXISTS'
+			],
+			[
+				'key'     => 'cabl_cert_status',
+				'value'   => 'Certified',
+				'compare' => '<>'
 			]
 		]
 	];

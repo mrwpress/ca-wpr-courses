@@ -156,13 +156,15 @@ function ca_user_api_call( $user_id ) {
 	if ( ! empty( $raw_data ) ) {
 		$result = json_decode( $raw_data );
 
-		update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
-		update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
 		$code = wpr_courses_get( $result, 'code', 200 );
 		if ( $code != 200 ) {
 			$api_log = new WP_Logging();
 			$api_log::add( 'User ID:' . $user_id . ' Code: ' . $code, $raw_data );
+			return;
 		}
+
+		update_user_meta( $user_id, 'cabl_cert_status', $result->certifiedStatus );
+		update_user_meta( $user_id, 'cabl_cert_info', curl_exec( $ch ) );
 	}
 }
 

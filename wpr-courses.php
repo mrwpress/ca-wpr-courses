@@ -37,6 +37,10 @@ const CABL_CERT_STATUS             = 'cabl_cert_status';
 const CABL_CERT_INFO               = 'cabl_cert_info';
 const CABL_CERT_DATE               = 'cabl_cert_date';
 const CABL_STATUS_CERTIFIED        = 'Certified';
+const CABL_FINAL_QUIZ_ID           = 9271;
+const CABL_QUIZ_COMPLETE_KEY       = 'cours_five_complete';
+const CABL_COURSE_ID               = 100;
+
 
 // Load the logging class file.
 require_once WPR_COURSES_DIR . 'inc/class-wp-logging.php';

@@ -9,15 +9,6 @@
  */
 
 /*
- * NOTES:
- * User 545 is Karl and has completed Quiz 5
- * http://localhost/cabl/wp-admin/user-edit.php?user_id=545&wp_http_referer=%2Fcabl%2Fwp-admin%2Fusers.php
- *
- * Look into extra sites being loaded in the webhook status on this page
- * http://localhost/cabl/wp-admin/admin.php?page=wc-settings&tab=checkout&section=ppcp-gateway&ppcp-tab=ppcp-connection
- *
- * On Users list in admin dash make another column with expiration of the course ID 100
- *
  * WHEN DONE:
  * In motion hosting copy CA to MI => "Louisiana Server"
  */
@@ -96,7 +87,9 @@ function wpr_courses_get( $array, $keys = NULL, $default = NULL ) {
 
 add_action( 'manage_users_columns', 'cabl_modify_user_columns' );
 function cabl_modify_user_columns( $column_headers ) {
-	$column_headers['ca_certified'] = 'CA Certified';
+	$column_headers['ca_certified']         = 'CA Certified';
+	$column_headers['ca_course_expiration'] = 'Course Expiration';
+	$column_headers['ca_final_quiz_taken']  = 'Final Quiz Done';
 	return $column_headers;
 }
 
@@ -105,29 +98,25 @@ function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) 
 	if ( 'ca_certified' == $column_name ) {
 		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
 	}
+
+	if ( 'ca_course_expiration' == $column_name ) {
+		// TODO: Figure out how to get the course expiration for user
+		$value = 'N/A';
+	}
+
+	if ( 'ca_final_quiz_taken' == $column_name ) {
+		$value = 'Incomplete';
+		if ( learndash_user_quiz_has_completed( $user_id, CABL_FINAL_QUIZ_ID, CABL_COURSE_ID ) ) {
+			$value = 'Complete';
+		}
+	}
+
 	return $value;
 }
 
 add_action( 'admin_init', 'my_admin_init' );
 function my_admin_init() {
-	$args = [
-		'number'     => 200,
-		'meta_query' => [
-			'relation' => 'OR',
-			[
-				'key'     => CABL_CERT_STATUS,
-				'value'   => CABL_STATUS_CERTIFIED,
-				'compare' => '!='
-			],
-			[
-				'key'     => CABL_CERT_DATE,
-				'value'   => time(),
-				'compare' => '<'
-			]
-		]
-	];
 
-//	$query = new WP_User_Query( $args );
 	/*
    * https://abcbiz.abc.ca.gov/login
    * https://bizmod-assets.s3.us-west-2.amazonaws.com/otp-api-doc.html - Documentation
@@ -186,13 +175,6 @@ function ca_user_api_call( $user_id ) {
 	if ( ! empty( $raw_data ) ) {
 		$result = json_decode( $raw_data );
 
-		$code = wpr_courses_get( $result, 'code', 200 );
-		if ( $code != 200 ) {
-			$api_log = new WP_Logging();
-			$api_log::add( 'User ID:' . $user_id . ' Code: ' . $code, $raw_data );
-			return;
-		}
-
 		$cert_date = wpr_courses_get( $result, 'certifiedToDate', 0 );
 		update_user_meta( $user_id, CABL_CERT_STATUS, $result->certifiedStatus );
 		update_user_meta( $user_id, CABL_CERT_INFO, curl_exec( $ch ) );
@@ -200,7 +182,7 @@ function ca_user_api_call( $user_id ) {
 	}
 }
 
-add_filter( 'cron_schedules', 'ca_cert_add_cron_interval' );
+//add_filter( 'cron_schedules', 'ca_cert_add_cron_interval' );
 function ca_cert_add_cron_interval( $schedules ) {
 	$schedules['five_minute'] = array(
 		'interval' => 300,
@@ -256,108 +238,6 @@ function wpr_show_admin_bar() {
 
 add_filter( 'show_admin_bar', 'wpr_show_admin_bar', 99 );
 
-/**
- * Enqueue scripts and styles.
- */
-function wpr_wp_enqueue_scripts() {
-	if ( is_plugin_active( 'sfwd-lms/sfwd_lms.php' ) ) {
-
-		wp_enqueue_script( 'wpr_course', WPR_COURSES_URI . 'assets/js/script.js', array( 'jquery' ), NULL, TRUE );
-		$wpr_course_js = array(
-			'quiz_id'         => ( is_singular( 'sfwd-quiz' ) ? get_the_ID() : 0 ),
-			'setting_quiz_id' => get_option( 'wpr_courses_settings_quiz_id' ),
-			'redirect_url'    => get_third_party_certificate_link(),
-		);
-		wp_localize_script( 'wpr_course', 'wprcourseData', $wpr_course_js );
-		wp_enqueue_script( 'wpr_course' );
-
-		// We are on a lesson page.
-		if ( is_singular( 'sfwd-lessons' ) ) {
-			// User is currently going through a course, enqueue the inquisitor script and stylesheet.
-			wp_enqueue_style( 'wpr-inquisitor', WPR_COURSES_URI . 'assets/css/inquisitor.css' );
-			wp_enqueue_script( 'wpr-inquisitor', WPR_COURSES_URI . 'assets/js/inquisitor.js', array( 'jquery' ), NULL, TRUE );
-			// Localize inquisitor script.
-			wp_localize_script(
-				'wpr-inquisitor',
-				'wpr_inquisitor_js',
-				array(
-					'ajaxurl'     => admin_url( 'admin-ajax.php' ),
-					'logout_url'  => wp_logout_url( home_url() ),
-					/* translators: %d: number of retries. */
-					'logout_text' => sprintf( esc_html__( 'Security question was answered incorrectly %d times. You will be logged out.', 'wpr' ), WPR_COURSES_RETRIES ),
-					'intro_text'  => esc_html__( 'Please answer the following question in order to verify your identity and continue the course:', 'wpr' ),
-					'error'       => esc_html__( 'There was an unexpected error and we could not verify your answer. Please refresh the page and try again.', 'wpr' ),
-					'no_answer'   => esc_html__( 'Please answer the question in order to continue the course!', 'wpr' ),
-					'incorrect'   => esc_html__( 'That is not the correct answer!', 'wpr' ),
-					'retry_max'   => WPR_COURSES_RETRIES,
-					/* translators: %d: number of retries allowed. */
-					'retry_warn'  => sprintf( esc_html__( 'Caution: %d wrong answers will log you out of your account!', 'wpr' ), WPR_COURSES_RETRIES ),
-				)
-			);
-		} elseif ( is_singular( 'sfwd-quiz' ) ) {
-			// Quiz page, load forced timer script if any questions have timers set.
-			$questions = get_post_meta( get_the_ID(), '_wpr_question_timers', TRUE );
-
-			if ( ! empty( $questions ) && is_array( $questions ) ) {
-				wp_enqueue_style( 'wpr-quiz-timer', WPR_COURSES_URI . 'assets/css/quiz-timer.css' );
-				wp_enqueue_script( 'wpr-quiz-timer', WPR_COURSES_URI . 'assets/js/quiz-timer.js', array( 'jquery' ), NULL, TRUE );
-				// Localize forced timer script.
-				$quiz_timer_questions = array_map(
-					function ( $timers ) {
-						return array_map(
-							function ( $timeval ) {
-								$time_sections = explode( ' ', $timeval );
-
-								$h = 0;
-								$m = 0;
-								$s = 0;
-
-								foreach ( $time_sections as $k => $v ) {
-									$value = trim( $v );
-
-									if ( strpos( $value, 'h' ) ) {
-										$h = intVal( $value );
-									} elseif ( strpos( $value, 'm' ) ) {
-										$m = intVal( $value );
-									} elseif ( strpos( $value, 's' ) ) {
-										$s = intVal( $value );
-									}
-								}
-
-								$time = $h * 60 * 60 + $m * 60 + $s;
-
-								if ( 0 === $time ) {
-									$time = (int) $timeval;
-								}
-
-								return $time;
-							},
-							$timers
-						);
-					},
-					$questions
-				);
-
-				$quiz_timer_strings = array(
-					'timer_title'            => __( 'Please listen to the recording!', 'wpr' ),
-					'timer_question_message' => __( 'You need to listen to the whole audio recording before answering the question.', 'wpr' ),
-					'timer_answer_message'   => __( 'You need to listen to the whole audio recording before proceeding to the next question.', 'wpr' ),
-				);
-
-				wp_localize_script(
-					'wpr-quiz-timer',
-					'wpr_quiz_timer_js',
-					array(
-						'timers'  => $quiz_timer_questions,
-						'strings' => $quiz_timer_strings,
-					)
-				);
-			}
-		}
-	}
-}
-
-add_action( 'wp_enqueue_scripts', 'wpr_wp_enqueue_scripts' );
 
 /**
  * Disallow logged-in users from accessing the registration page.
@@ -459,25 +339,26 @@ add_filter( 'gform_review_page', 'wpr_gform_review_page', 10, 3 );
  *
  * @return void
  */
-function wpr_witobaccocheck_status( $user ) {
+function cabl_extend_user_profile( $user ) {
 	$current_user = wp_get_current_user();
 
 	if ( in_array( 'administrator', $current_user->roles ) ) {
 
 		$cert_details = get_user_meta( $user->ID, 'cabl_cert_info', TRUE );
-		echo '<div class="cabl_cert_status">Status: ' . get_user_meta( $user->ID, 'cabl_cert_status', TRUE ) . '</div>';
+		echo '<div class="cabl_cert_status">Status: ' . get_user_meta( $user->ID, CABL_CERT_STATUS, TRUE ) . '</div>';
 		if ( ! empty( $cert_details ) ) {
 			$details = json_decode( $cert_details );
 			echo '<div>';
 			echo '<pre>';
 			echo print_r( $details );
 			echo '</div>';
+			echo '<p><label><input type="checkbox" name="cabl_manual_process_cert_auth"> Send Authorization to CA Certification Site</label></p>';
 		}
 	}
 }
 
-add_action( 'show_user_profile', 'wpr_witobaccocheck_status', 99 );
-add_action( 'edit_user_profile', 'wpr_witobaccocheck_status', 99 );
+add_action( 'show_user_profile', 'cabl_extend_user_profile', 99 );
+add_action( 'edit_user_profile', 'cabl_extend_user_profile', 99 );
 
 /**
  * Update custom user details
@@ -486,23 +367,19 @@ add_action( 'edit_user_profile', 'wpr_witobaccocheck_status', 99 );
  *
  * @return void
  */
-function wpr_witobaccocheck_status_action( $user_id ) {
+function cabl_update_user_data( $user_id ) {
 	$current_user = wp_get_current_user();
 
 	if ( in_array( 'administrator', $current_user->roles ) ) {
-		if ( isset( $_POST['wpr_witobaccocheck_status'] ) ) {
-			$value = sanitize_text_field( $_POST['wpr_witobaccocheck_status'] );
-			update_user_meta( $user_id, '_wpr_witobaccocheck_status', $value );
-		}
-		if ( isset( $_POST['_wpr_witobaccocheck_date'] ) ) {
-			$value = sanitize_text_field( $_POST['_wpr_witobaccocheck_date'] );
-			update_user_meta( $user_id, '_wpr_witobaccocheck_date', $value );
+		$manual_send = wpr_safe_request( 'cabl_manual_process_cert_auth', FALSE );
+		if ( $manual_send ) {
+			ca_post_to_california( $user_id );
 		}
 	}
 }
 
-add_action( 'personal_options_update', 'wpr_witobaccocheck_status_action', 99 );
-add_action( 'edit_user_profile_update', 'wpr_witobaccocheck_status_action', 99 );
+add_action( 'personal_options_update', 'cabl_update_user_data', 99 );
+add_action( 'edit_user_profile_update', 'cabl_update_user_data', 99 );
 
 /**
  * Set U.S. as the default checkout country.
@@ -520,7 +397,7 @@ add_filter( 'default_checkout_country', 'wpr_default_checkout_country' );
  *
  * @return string
  */
-function wpr_default_checkout_state() {
+function cabl_default_checkout_state() {
 	$user = wp_get_current_user();
 
 	if ( ! empty( $user->billing_state ) ) {
@@ -530,7 +407,7 @@ function wpr_default_checkout_state() {
 	return '';
 }
 
-add_filter( 'default_checkout_state', 'wpr_default_checkout_state' );
+add_filter( 'default_checkout_state', 'cabl_default_checkout_state' );
 
 /**
  * User short state names in the state dropdown.
@@ -574,20 +451,67 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 /*
  * NOTE:  THIS IS WHERE THE POST to the API HAPPENS
  */
-function wpr_send_trainee_data_fliped( $quiz_data, $user_id ) {
-	/*
-   * FIRE ON QUIZ 5
-   */
+function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-	$final_quiz_id = get_option( 'wpr_courses_settings_quiz_final_id', TRUE );
-	if ( (int) $quiz_data['quiz'] === (int) $final_quiz_id ) {
-		update_user_meta( $user_id->ID, '_wpr_witobaccocheck_date', gmdate( 'Y/m/d' ) );
+	$data_sent = (bool) get_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, TRUE );
+	if ( (int) $quiz_data['quiz'] === CABL_FINAL_QUIZ_ID && ! $data_sent ) {
+		ca_post_to_california( $user->ID );
+		update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
 	}
 }
 
 // @help: https://developers.learndash.com/hook/learndash_quiz_submitted/
-add_action( 'learndash_quiz_submitted', 'wpr_send_trainee_data_fliped', 1000, 2 );
+add_action( 'learndash_quiz_submitted', 'cabl_after_quiz_submitted', 1000, 2 );
+
+function ca_post_to_california( $user_id ) {
+
+	if ( ! $user_id ) {
+		return;
+	}
+
+	$server_id = get_user_meta( $user_id, '_wpr_ssn', TRUE );
+	if ( ! $server_id ) {
+		return;
+	}
+
+	$last_name = get_user_meta( $user_id, 'last_name', TRUE );
+	if ( ! $last_name ) {
+		return;
+	}
+
+	$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name . '/providers/' . PROVIDER_ID . '/programs/' . PROGRAM_ID;
+
+
+//Create a cURL handle.
+	$ch = curl_init( $url );
+
+//Create an array of custom headers.
+	$customHeaders = [
+		'X-API-Key: ' . ABC_API_KEY
+	];
+
+//Use the CURLOPT_HTTPHEADER option to use our
+//custom headers.
+	curl_setopt( $ch, CURLOPT_POST, TRUE );
+	curl_setopt( $ch, CURLOPT_HTTPHEADER, $customHeaders );
+
+//Set options to follow redirects and return output
+//as a string.
+	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
+	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, TRUE );
+
+//Execute the request.
+	$raw_data = curl_exec( $ch );
+	if ( ! empty( $raw_data ) ) {
+		$result = json_decode( $raw_data );
+
+		$api_log = new WP_Logging();
+		$content = '<p><a href="' . get_edit_user_link( $user_id ) . '">Edit User</a></p>' . $raw_data;
+		$api_log::add( 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+
+	}
+}
 
 
 /**

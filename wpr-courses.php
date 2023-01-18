@@ -40,6 +40,7 @@ const CABL_STATUS_CERTIFIED        = 'Certified';
 const CABL_FINAL_QUIZ_ID           = 9271;
 const CABL_QUIZ_COMPLETE_KEY       = 'cours_five_complete';
 const CABL_COURSE_ID               = 100;
+const CABL_COURSE_PROD_ID          = 2628;
 
 
 // Load the logging class file.

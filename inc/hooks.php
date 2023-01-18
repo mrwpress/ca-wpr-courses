@@ -99,10 +99,11 @@ function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) 
 		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
 	}
 
-	if ( 'ca_course_expiration' == $column_name ) {$date = new DateTime();
-	  $value = ld_course_access_expires_on( CABL_COURSE_ID,  $user_id);
-	  $formatted = $date->setTimestamp($value);
-	  $value = date_format($formatted, 'F jS, Y');
+	if ( 'ca_course_expiration' == $column_name ) {
+		$date      = new DateTime();
+		$value     = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
+		$formatted = $date->setTimestamp( $value );
+		$value     = date_format( $formatted, 'F jS, Y' );
 	}
 
 	if ( 'ca_final_quiz_taken' == $column_name ) {
@@ -175,9 +176,10 @@ function ca_user_api_call( $user_id ) {
 	$raw_data = curl_exec( $ch );
 	if ( ! empty( $raw_data ) ) {
 		$result = json_decode( $raw_data );
+		$status = wpr_courses_get( $result, 'certifiedStatus', '' );
 
 		$cert_date = wpr_courses_get( $result, 'certifiedToDate', 0 );
-		update_user_meta( $user_id, CABL_CERT_STATUS, $result->certifiedStatus );
+		update_user_meta( $user_id, CABL_CERT_STATUS, $status );
 		update_user_meta( $user_id, CABL_CERT_INFO, curl_exec( $ch ) );
 		update_user_meta( $user_id, CABL_CERT_DATE, $cert_date );
 	}
@@ -505,11 +507,19 @@ function ca_post_to_california( $user_id ) {
 //Execute the request.
 	$raw_data = curl_exec( $ch );
 	if ( ! empty( $raw_data ) ) {
-		$result = json_decode( $raw_data );
+		$result       = json_decode( $raw_data );
+		$success      = [ 200, 201 ];
+		$prefix       = 'No';
+		$column_value = 'ERROR';
+		if ( in_array( $result->code, $success ) ) {
+			$prefix       = 'SUCCESS: ';
+			$column_value = 'SUCCESS';
+		}
 
-		$api_log = new WP_Logging();
-		$content = '<p><a href="' . get_edit_user_link( $user_id ) . '">Edit User</a></p>' . $raw_data;
-		$api_log::add( 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+		$api_log   = new WP_Logging();
+		$content   = '<p><a href="' . get_edit_user_link( $user_id ) . '">Edit User</a></p>' . $raw_data;
+		$insert_id = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+		update_post_meta( $insert_id, 'cabl_api_code', $column_value );
 
 	}
 }
@@ -605,3 +615,40 @@ function save_security_fields( $user_id ) {
 
 add_action( 'personal_options_update', 'save_security_fields' );
 add_action( 'edit_user_profile_update', 'save_security_fields' );
+
+/**
+ * Redirect to course page after successful checkout.
+ *
+ * @param int $order_id
+ */
+function wpr_woocommerce_thankyou( $order_id ) {
+	$order = new WC_Order( $order_id );
+
+	if ( 'failed' !== $order->status ) {
+		$course_arr = get_post_meta( CABL_COURSE_PROD_ID, '_related_course', TRUE );
+
+		if ( is_array( $course_arr ) ) {
+			$course_url = get_permalink( intval( $course_arr[0] ) );
+			wp_safe_redirect( $course_url );
+			die;
+		}
+	}
+}
+
+add_action( 'woocommerce_thankyou', 'wpr_woocommerce_thankyou' );
+
+// Add the custom columns to the book post type:
+add_filter( 'manage_wp_log_posts_columns', 'set_custom_edit_wp_log_columns' );
+function set_custom_edit_wp_log_columns( $columns ) {
+	$columns['api_response'] = __( 'API Response', 'your_text_domain' );
+
+	return $columns;
+}
+
+// Add the data to the custom columns for the book post type:
+add_action( 'manage_wp_log_posts_custom_column', 'custom_wp_log_column', 10, 2 );
+function custom_wp_log_column( $column, $post_id ) {
+	if ( wpr_courses_get( $column, 'api_response' ) ) {
+		echo get_post_meta( $post_id, 'cabl_api_code', TRUE );
+	}
+}

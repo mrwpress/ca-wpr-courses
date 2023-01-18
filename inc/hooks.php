@@ -509,7 +509,7 @@ function ca_post_to_california( $user_id ) {
 	if ( ! empty( $raw_data ) ) {
 		$result       = json_decode( $raw_data );
 		$success      = [ 200, 201 ];
-		$prefix       = 'No';
+		$prefix       = 'ERROR: ';
 		$column_value = 'ERROR';
 		if ( in_array( $result->code, $success ) ) {
 			$prefix       = 'SUCCESS: ';
@@ -648,7 +648,7 @@ function set_custom_edit_wp_log_columns( $columns ) {
 // Add the data to the custom columns for the book post type:
 add_action( 'manage_wp_log_posts_custom_column', 'custom_wp_log_column', 10, 2 );
 function custom_wp_log_column( $column, $post_id ) {
-	if ( wpr_courses_get( $column, 'api_response' ) ) {
+	if ( 'api_response' == $column ) {
 		echo get_post_meta( $post_id, 'cabl_api_code', TRUE );
 	}
 }

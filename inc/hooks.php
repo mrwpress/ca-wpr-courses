@@ -89,7 +89,7 @@ add_action( 'manage_users_columns', 'cabl_modify_user_columns' );
 function cabl_modify_user_columns( $column_headers ) {
 	$column_headers['ca_certified']         = 'CA Certified';
 	$column_headers['ca_course_expiration'] = 'Course Expiration';
-	$column_headers['ca_final_quiz_taken']  = 'Final Quiz Done';
+	$column_headers['ca_final_quiz_taken']  = 'Final Quiz';
 	return $column_headers;
 }
 
@@ -99,9 +99,10 @@ function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) 
 		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
 	}
 
-	if ( 'ca_course_expiration' == $column_name ) {
-		// TODO: Figure out how to get the course expiration for user
-		$value = 'N/A';
+	if ( 'ca_course_expiration' == $column_name ) {$date = new DateTime();
+	  $value = ld_course_access_expires_on( CABL_COURSE_ID,  $user_id);
+	  $formatted = $date->setTimestamp($value);
+	  $value = date_format($formatted, 'F jS, Y');
 	}
 
 	if ( 'ca_final_quiz_taken' == $column_name ) {
@@ -602,8 +603,5 @@ function save_security_fields( $user_id ) {
 	update_user_meta( $user_id, '_wpr_dob', $value );
 }
 
-/*
- * TODO: Combine these with the established hooks already set above
- */
 add_action( 'personal_options_update', 'save_security_fields' );
 add_action( 'edit_user_profile_update', 'save_security_fields' );

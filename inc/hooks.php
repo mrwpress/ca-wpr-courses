@@ -100,13 +100,13 @@ function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) 
 	}
 
 	if ( 'ca_course_expiration' == $column_name ) {
-	  $date  = new DateTime();
-	  $value = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
-	  if ( ! $value ) {
-		  return 'N/A';
-	  }
-	  $formatted = $date->setTimestamp( $value );
-	  $value     = date_format( $formatted, 'F jS, Y' );
+		$date  = new DateTime();
+		$value = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
+		if ( ! $value ) {
+			return 'N/A';
+		}
+		$formatted = $date->setTimestamp( $value );
+		$value     = date_format( $formatted, 'F jS, Y' );
 	}
 
 	if ( 'ca_final_quiz_taken' == $column_name ) {
@@ -197,15 +197,12 @@ function ca_cert_add_cron_interval( $schedules ) {
 	return $schedules;
 }
 
-//if ( ! wp_next_scheduled( 'ca_cron_task_hook' ) ) {
-//	wp_schedule_event( time(), 'five_minute', 'ca_cron_task_hook' );
-//}
-//add_action( 'ca_cron_task_hook', 'ca_process_user_cert_data' );
+if ( ! wp_next_scheduled( 'ca_cron_task_hook' ) ) {
+	wp_schedule_event( time(), 'five_minute', 'ca_cron_task_hook' );
+}
+add_action( 'ca_cron_task_hook', 'ca_process_user_cert_data' );
 
 function ca_process_user_cert_data() {
-	// TODO: Discuss with Will and Bobby - is 200 too low?
-	// TODO: Pickup at offset?  Then loop back around?
-	// TODO:  What if there are 200+ abandoned accounts?
 	$args = [
 		'number'     => 200,
 		'meta_query' => [
@@ -463,11 +460,9 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-	$data_sent = (bool) get_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, TRUE );
-	if ( (int) $quiz_data['quiz'] === CABL_FINAL_QUIZ_ID && ! $data_sent ) {
-		ca_post_to_california( $user->ID );
-		update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
-	}
+	
+	ca_post_to_california( $user->ID );
+	update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
 }
 
 // @help: https://developers.learndash.com/hook/learndash_quiz_submitted/

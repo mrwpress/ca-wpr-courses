@@ -87,7 +87,7 @@ function wpr_courses_get( $array, $keys = NULL, $default = NULL ) {
 
 add_action( 'manage_users_columns', 'cabl_modify_user_columns' );
 function cabl_modify_user_columns( $column_headers ) {
-	$column_headers['ca_certified']         = 'CA Certified';
+	$column_headers['ca_api_status']        = 'API Send Status';
 	$column_headers['ca_course_expiration'] = 'Course Expiration';
 	$column_headers['ca_final_quiz_taken']  = 'Final Quiz';
 	return $column_headers;
@@ -95,8 +95,9 @@ function cabl_modify_user_columns( $column_headers ) {
 
 add_action( 'manage_users_custom_column', 'cabl_user_posts_count_column_content', 10, 3 );
 function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) {
-	if ( 'ca_certified' == $column_name ) {
-		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
+	if ( 'ca_api_status' == $column_name ) {
+		$data  = get_user_meta( $user_id, 'cabl_cert_info', TRUE ) ? json_decode( get_user_meta( $user_id, 'cabl_cert_info', TRUE ) ) : NULL;
+		$value = ! $data || empty( $data->mostRecentTraining ) ? 'N/A' : $data->mostRecentTraining->status;
 	}
 
 	if ( 'ca_course_expiration' == $column_name ) {

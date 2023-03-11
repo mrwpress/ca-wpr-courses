@@ -376,7 +376,10 @@ function cabl_update_user_data( $user_id ) {
 	if ( in_array( 'administrator', $current_user->roles ) ) {
 		$manual_send = wpr_safe_request( 'cabl_manual_process_cert_auth', FALSE );
 		if ( $manual_send ) {
-			ca_post_to_california( $user_id );
+			$user_id = wpr_safe_request( 'user_id', 0 );
+			if ( $user_id ) {
+				ca_post_to_california( $user_id );
+			}
 		}
 	}
 }
@@ -449,7 +452,6 @@ function wpr_gform_user_registration_username( $username ) {
 }
 
 add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_username' );
-
 
 
 /*

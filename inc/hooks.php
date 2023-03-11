@@ -100,10 +100,13 @@ function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) 
 	}
 
 	if ( 'ca_course_expiration' == $column_name ) {
-		$date      = new DateTime();
-		$value     = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
-		$formatted = $date->setTimestamp( $value );
-		$value     = date_format( $formatted, 'F jS, Y' );
+	  $date  = new DateTime();
+	  $value = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
+	  if ( ! $value ) {
+		  return 'N/A';
+	  }
+	  $formatted = $date->setTimestamp( $value );
+	  $value     = date_format( $formatted, 'F jS, Y' );
 	}
 
 	if ( 'ca_final_quiz_taken' == $column_name ) {

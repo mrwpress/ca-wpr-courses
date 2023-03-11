@@ -451,6 +451,7 @@ function wpr_gform_user_registration_username( $username ) {
 add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_username' );
 
 
+
 /*
  * NOTE:  THIS IS WHERE THE POST to the API HAPPENS
  */

@@ -87,7 +87,7 @@ function wpr_courses_get( $array, $keys = NULL, $default = NULL ) {
 
 add_action( 'manage_users_columns', 'cabl_modify_user_columns' );
 function cabl_modify_user_columns( $column_headers ) {
-	$column_headers['ca_certified']         = 'CA Certified';
+	$column_headers['ca_api_status']        = 'API Send Status';
 	$column_headers['ca_course_expiration'] = 'Course Expiration';
 	$column_headers['ca_final_quiz_taken']  = 'Final Quiz';
 	return $column_headers;
@@ -95,13 +95,17 @@ function cabl_modify_user_columns( $column_headers ) {
 
 add_action( 'manage_users_custom_column', 'cabl_user_posts_count_column_content', 10, 3 );
 function cabl_user_posts_count_column_content( $value, $column_name, $user_id ) {
-	if ( 'ca_certified' == $column_name ) {
-		$value = get_user_meta( $user_id, 'cabl_cert_status', TRUE ) == WPR_COURSES_STATUS_CERTIFIED ? 'Yes' : 'No';
+	if ( 'ca_api_status' == $column_name ) {
+		$data  = get_user_meta( $user_id, 'cabl_cert_info', TRUE ) ? json_decode( get_user_meta( $user_id, 'cabl_cert_info', TRUE ) ) : NULL;
+		$value = ! $data || empty( $data->mostRecentTraining ) ? 'N/A' : $data->mostRecentTraining->status;
 	}
 
 	if ( 'ca_course_expiration' == $column_name ) {
-		$date      = new DateTime();
-		$value     = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
+		$date  = new DateTime();
+		$value = ld_course_access_expires_on( CABL_COURSE_ID, $user_id );
+		if ( ! $value ) {
+			return 'N/A';
+		}
 		$formatted = $date->setTimestamp( $value );
 		$value     = date_format( $formatted, 'F jS, Y' );
 	}
@@ -194,15 +198,12 @@ function ca_cert_add_cron_interval( $schedules ) {
 	return $schedules;
 }
 
-//if ( ! wp_next_scheduled( 'ca_cron_task_hook' ) ) {
-//	wp_schedule_event( time(), 'five_minute', 'ca_cron_task_hook' );
-//}
-//add_action( 'ca_cron_task_hook', 'ca_process_user_cert_data' );
+if ( ! wp_next_scheduled( 'ca_cron_task_hook' ) ) {
+	wp_schedule_event( time(), 'five_minute', 'ca_cron_task_hook' );
+}
+add_action( 'ca_cron_task_hook', 'ca_process_user_cert_data' );
 
 function ca_process_user_cert_data() {
-	// TODO: Discuss with Will and Bobby - is 200 too low?
-	// TODO: Pickup at offset?  Then loop back around?
-	// TODO:  What if there are 200+ abandoned accounts?
 	$args = [
 		'number'     => 200,
 		'meta_query' => [
@@ -347,16 +348,9 @@ function cabl_extend_user_profile( $user ) {
 
 	if ( in_array( 'administrator', $current_user->roles ) ) {
 
-		$cert_details = get_user_meta( $user->ID, 'cabl_cert_info', TRUE );
 		echo '<div class="cabl_cert_status">Status: ' . get_user_meta( $user->ID, CABL_CERT_STATUS, TRUE ) . '</div>';
-		if ( ! empty( $cert_details ) ) {
-			$details = json_decode( $cert_details );
-			echo '<div>';
-			echo '<pre>';
-			echo print_r( $details );
-			echo '</div>';
-			echo '<p><label><input type="checkbox" name="cabl_manual_process_cert_auth"> Send Authorization to CA Certification Site</label></p>';
-		}
+		echo '<div class="admin_manual_send"><p><label><input type="checkbox" name="cabl_manual_process_cert_auth"> Send Authorization to CA Certification Site</label></p></div>';
+
 	}
 }
 
@@ -376,7 +370,10 @@ function cabl_update_user_data( $user_id ) {
 	if ( in_array( 'administrator', $current_user->roles ) ) {
 		$manual_send = wpr_safe_request( 'cabl_manual_process_cert_auth', FALSE );
 		if ( $manual_send ) {
-			ca_post_to_california( $user_id );
+			$user_id = wpr_safe_request( 'user_id', 0 );
+			if ( $user_id ) {
+				ca_post_to_california( $user_id );
+			}
 		}
 	}
 }
@@ -457,11 +454,9 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-	$data_sent = (bool) get_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, TRUE );
-	if ( (int) $quiz_data['quiz'] === CABL_FINAL_QUIZ_ID && ! $data_sent ) {
-		ca_post_to_california( $user->ID );
-		update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
-	}
+
+	ca_post_to_california( $user->ID );
+	update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
 }
 
 // @help: https://developers.learndash.com/hook/learndash_quiz_submitted/

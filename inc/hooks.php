@@ -347,16 +347,9 @@ function cabl_extend_user_profile( $user ) {
 
 	if ( in_array( 'administrator', $current_user->roles ) ) {
 
-		$cert_details = get_user_meta( $user->ID, 'cabl_cert_info', TRUE );
 		echo '<div class="cabl_cert_status">Status: ' . get_user_meta( $user->ID, CABL_CERT_STATUS, TRUE ) . '</div>';
-		if ( ! empty( $cert_details ) ) {
-			$details = json_decode( $cert_details );
-			echo '<div>';
-			echo '<pre>';
-			echo print_r( $details );
-			echo '</div>';
-			echo '<p><label><input type="checkbox" name="cabl_manual_process_cert_auth"> Send Authorization to CA Certification Site</label></p>';
-		}
+		echo '<div class="admin_manual_send"><p><label><input type="checkbox" name="cabl_manual_process_cert_auth"> Send Authorization to CA Certification Site</label></p></div>';
+
 	}
 }
 
@@ -460,7 +453,7 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-	
+
 	ca_post_to_california( $user->ID );
 	update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
 }

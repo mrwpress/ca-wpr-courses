@@ -454,9 +454,11 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-
-	ca_post_to_california( $user->ID );
-	update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
+	$data_sent = (bool) get_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, TRUE );
+	if ( (int) $quiz_data['quiz'] === CABL_FINAL_QUIZ_ID ) {
+		ca_post_to_california( $user->ID );
+		update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
+	}
 }
 
 // @help: https://developers.learndash.com/hook/learndash_quiz_submitted/

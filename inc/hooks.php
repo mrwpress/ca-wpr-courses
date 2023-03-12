@@ -454,9 +454,11 @@ add_filter( 'gform_user_registration_username', 'wpr_gform_user_registration_use
 function cabl_after_quiz_submitted( $quiz_data, $user ) {
 	// Fires when quiz is marked complete
 	// @help: https://developers.learndash.com/hook/wp_pro_quiz_completed_quiz/
-
-	ca_post_to_california( $user->ID );
-	update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
+	$data_sent = (bool) get_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, TRUE );
+	if ( (int) $quiz_data['quiz'] === CABL_FINAL_QUIZ_ID ) {
+		ca_post_to_california( $user->ID );
+		update_user_meta( $user->ID, CABL_QUIZ_COMPLETE_KEY, time() );
+	}
 }
 
 // @help: https://developers.learndash.com/hook/learndash_quiz_submitted/
@@ -511,9 +513,14 @@ function ca_post_to_california( $user_id ) {
 			$column_value = 'SUCCESS';
 		}
 
-		$api_log   = new WP_Logging();
-		$content   = '<p><a href="' . get_edit_user_link( $user_id ) . '">Edit User</a></p>' . $raw_data;
-		$insert_id = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+		$api_log       = new WP_Logging();
+		$edit_user_url = sprintf(
+			'<p>Data for user <a href="%s">%d</a> submitted.</p>',
+			esc_url_raw( add_query_arg( 'user_id', $user_id, self_admin_url( 'user-edit.php' ) ) ),
+			$user_id
+		);
+		$content       = $edit_user_url . $raw_data;
+		$insert_id     = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
 		update_post_meta( $insert_id, 'cabl_api_code', $column_value );
 
 	}

@@ -513,9 +513,14 @@ function ca_post_to_california( $user_id ) {
 			$column_value = 'SUCCESS';
 		}
 
-		$api_log   = new WP_Logging();
-		$content   = '<p><a href="' . get_edit_user_link( $user_id ) . '">Edit User</a></p>' . $raw_data;
-		$insert_id = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+		$api_log       = new WP_Logging();
+		$edit_user_url = sprintf(
+			'<p>Data for user <a href="%s">%d</a> submitted successfully.</p>',
+			esc_url_raw( add_query_arg( 'user_id', $user_id, self_admin_url( 'user-edit.php' ) ) ),
+			$user_id
+		);
+		$content       = $edit_user_url . $raw_data;
+		$insert_id     = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
 		update_post_meta( $insert_id, 'cabl_api_code', $column_value );
 
 	}

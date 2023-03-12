@@ -515,7 +515,7 @@ function ca_post_to_california( $user_id ) {
 
 		$api_log       = new WP_Logging();
 		$edit_user_url = sprintf(
-			'<p>Data for user <a href="%s">%d</a> submitted successfully.</p>',
+			'<p>Data for user <a href="%s">%d</a> submitted.</p>',
 			esc_url_raw( add_query_arg( 'user_id', $user_id, self_admin_url( 'user-edit.php' ) ) ),
 			$user_id
 		);

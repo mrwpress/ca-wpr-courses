@@ -8,10 +8,6 @@
  * @license     GPL-2.0+
  */
 
-/*
- * WHEN DONE:
- * In motion hosting copy CA to MI => "Louisiana Server"
- */
 
 /**
  * NOTES
@@ -390,7 +386,7 @@ function wpr_default_checkout_country() {
 	return 'US';
 }
 
-add_filter( 'default_checkout_country', 'wpr_default_checkout_country' );
+add_filter( 'default_checkout_billing_country', 'wpr_default_checkout_country' );
 
 /**
  * Populate the checkout state.
@@ -407,7 +403,7 @@ function cabl_default_checkout_state() {
 	return '';
 }
 
-add_filter( 'default_checkout_state', 'cabl_default_checkout_state' );
+add_filter( 'default_checkout_billing_state', 'cabl_default_checkout_state' );
 
 /**
  * User short state names in the state dropdown.
@@ -480,7 +476,10 @@ function ca_post_to_california( $user_id ) {
 		return;
 	}
 
-	$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name . '/providers/' . PROVIDER_ID . '/programs/' . PROGRAM_ID;
+	$pieces            = explode( ' ', $last_name );
+	$last_name_in_name = array_pop( $pieces );
+
+	$url = 'https://api-services.abc.ca.gov/servers/' . $server_id . '/lastnames/' . $last_name_in_name . '/providers/' . PROVIDER_ID . '/programs/' . PROGRAM_ID;
 
 
 //Create a cURL handle.
@@ -503,27 +502,25 @@ function ca_post_to_california( $user_id ) {
 
 //Execute the request.
 	$raw_data = curl_exec( $ch );
-	if ( ! empty( $raw_data ) ) {
-		$result       = json_decode( $raw_data );
-		$success      = [ 200, 201 ];
-		$prefix       = 'ERROR: ';
-		$column_value = 'ERROR';
-		if ( in_array( $result->code, $success ) ) {
-			$prefix       = 'SUCCESS: ';
-			$column_value = 'SUCCESS';
-		}
 
-		$api_log       = new WP_Logging();
-		$edit_user_url = sprintf(
-			'<p>Data for user <a href="%s">%d</a> submitted.</p>',
-			esc_url_raw( add_query_arg( 'user_id', $user_id, self_admin_url( 'user-edit.php' ) ) ),
-			$user_id
-		);
-		$content       = $edit_user_url . $raw_data;
-		$insert_id     = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
-		update_post_meta( $insert_id, 'cabl_api_code', $column_value );
-
+	$result       = json_decode( $raw_data );
+	$success      = [ 200, 201 ];
+	$prefix       = 'ERROR: ';
+	$column_value = 'ERROR';
+	if ( in_array( $result->code, $success ) ) {
+		$prefix       = 'SUCCESS: ';
+		$column_value = 'SUCCESS';
 	}
+
+	$api_log       = new WP_Logging();
+	$edit_user_url = sprintf(
+		'<p>Data for user <a href="%s">%d</a> submitted.</p>',
+		esc_url_raw( add_query_arg( 'user_id', $user_id, self_admin_url( 'user-edit.php' ) ) ),
+		$user_id
+	);
+	$content       = $edit_user_url . $raw_data;
+	$insert_id     = $api_log::add( $prefix . 'User ID:' . $user_id . ' Code: ' . $result->code, $content );
+	update_post_meta( $insert_id, 'cabl_api_code', $column_value );
 }
 
 
@@ -542,48 +539,48 @@ function wpr_show_security_fields( $user ) {
 	}
 
 	?>
-  <h3><?php _e( 'Security details' ); ?></h3>
-  <table class="form-table">
-    <tr>
-      <th><label for="_wpr_mfn">Mother's first name</label></th>
-      <td>
-        <input type="text" name="_wpr_mfn" id="_wpr_mfn" value="<?php echo get_user_meta( $user->ID, '_wpr_mfn', TRUE ); ?>" class="regular-text"/><br/>
-      </td>
-    </tr>
-    <tr>
-      <th><label for="_wpr_ssn">Server ID #</label></th>
-      <td>
-        <input type="text" name="_wpr_ssn" id="_wpr_ssn" value="<?php echo get_user_meta( $user->ID, '_wpr_ssn', TRUE ); ?>" class="regular-text"/><br/>
-      </td>
-    </tr>
-    <tr>
-      <th><label for="_wpr_dob">Birth date</label></th>
-      <td>
-		  <?php
-		  $dob = get_user_meta( $user->ID, '_wpr_dob', TRUE );
-		  if ( ! empty( $dob ) ) {
-			  $dob = date_create( $dob );
-		  }
-		  $value = ( empty( $dob ) ) ? '' : date_format( $dob, 'm/d/Y' );
-		  ?>
-        <input type="text" name="_wpr_dob" id="wpr_dob" value="<?php echo $value; ?>" class="regular-text"/><br/>
-        <span><em>Eg.: 04/24/1994</em></span>
-        <script type="text/javascript">
-          jQuery( document ).ready( function( $ ) {
-            $( "#wpr_dob" ).datepicker( {
-              minDate: "-100Y",
-              dateFormat: "mm/dd/yy"
-            } );
-			  <?php
-			  if ( ! empty( $value ) ) {
-				  echo "$( '#wpr_dob' ).datepicker('setDate', '" . $value . "');";
-			  }
-			  ?>
-          } );
-        </script>
-      </td>
-    </tr>
-  </table>
+	<h3><?php _e( 'Security details' ); ?></h3>
+	<table class="form-table">
+		<tr>
+			<th><label for="_wpr_mfn">Mother's first name</label></th>
+			<td>
+				<input type="text" name="_wpr_mfn" id="_wpr_mfn" value="<?php echo get_user_meta( $user->ID, '_wpr_mfn', TRUE ); ?>" class="regular-text"/><br/>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="_wpr_ssn">Server ID #</label></th>
+			<td>
+				<input type="text" name="_wpr_ssn" id="_wpr_ssn" value="<?php echo get_user_meta( $user->ID, '_wpr_ssn', TRUE ); ?>" class="regular-text"/><br/>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="_wpr_dob">Birth date</label></th>
+			<td>
+				<?php
+				$dob = get_user_meta( $user->ID, '_wpr_dob', TRUE );
+				if ( ! empty( $dob ) ) {
+					$dob = date_create( $dob );
+				}
+				$value = ( empty( $dob ) ) ? '' : date_format( $dob, 'm/d/Y' );
+				?>
+				<input type="text" name="_wpr_dob" id="wpr_dob" value="<?php echo $value; ?>" class="regular-text"/><br/>
+				<span><em>Eg.: 04/24/1994</em></span>
+				<script type="text/javascript">
+                  jQuery( document ).ready( function( $ ) {
+                    $( "#wpr_dob" ).datepicker( {
+                      minDate: "-100Y",
+                      dateFormat: "mm/dd/yy"
+                    } );
+					  <?php
+					  if ( ! empty( $value ) ) {
+						  echo "$( '#wpr_dob' ).datepicker('setDate', '" . $value . "');";
+					  }
+					  ?>
+                  } );
+				</script>
+			</td>
+		</tr>
+	</table>
 	<?php
 }
 
@@ -624,17 +621,7 @@ add_action( 'edit_user_profile_update', 'save_security_fields' );
  * @param int $order_id
  */
 function wpr_woocommerce_thankyou( $order_id ) {
-	$order = new WC_Order( $order_id );
-
-	if ( 'failed' !== $order->status ) {
-		$course_arr = get_post_meta( CABL_COURSE_PROD_ID, '_related_course', TRUE );
-
-		if ( is_array( $course_arr ) ) {
-			$course_url = get_permalink( intval( $course_arr[0] ) );
-			wp_safe_redirect( $course_url );
-			die;
-		}
-	}
+	wp_safe_redirect( get_permalink( CABL_COURSE_ID ) );
 }
 
 add_action( 'woocommerce_thankyou', 'wpr_woocommerce_thankyou' );
@@ -642,7 +629,7 @@ add_action( 'woocommerce_thankyou', 'wpr_woocommerce_thankyou' );
 // Add the custom columns to the book post type:
 add_filter( 'manage_wp_log_posts_columns', 'set_custom_edit_wp_log_columns' );
 function set_custom_edit_wp_log_columns( $columns ) {
-	$columns['api_response'] = __( 'API Response', 'your_text_domain' );
+	$columns['api_response'] = __( 'API Response', 'cabl' );
 
 	return $columns;
 }
@@ -654,3 +641,13 @@ function custom_wp_log_column( $column, $post_id ) {
 		echo get_post_meta( $post_id, 'cabl_api_code', TRUE );
 	}
 }
+
+/*
+ * This turns off the background processing of the user and does it directly on form submission
+ * @help: https://community.gravityforms.com/t/user-registration-hook-to-log-user-in-no-longer-functions-resolved/15073/2
+ * @help: https://docs.gravityforms.com/gform_is_feed_asynchronous/?_ga=2.203391378.2026193568.1691587962-1259043467.1691587962#disable-for-user-registration-auto-login
+ */
+
+add_filter( 'gform_is_feed_asynchronous', function ( $is_asynchronous, $feed ) {
+	return FALSE;
+}, 10, 2 );
